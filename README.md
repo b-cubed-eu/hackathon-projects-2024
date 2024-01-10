@@ -4,7 +4,7 @@ This repository is for participants of the hackathon 2024 in Brussels. Use it to
 ## Projects
 
 * [Project 1](1):
-* * [Project 2](2):
+* [Project 2](2):
 * [Project 3](3):
 * [Project 4](4):
 * [Project 5](5):
