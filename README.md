@@ -1,5 +1,6 @@
 # B-Cubed Hackathon: Hacking biodiversity data cubes for policy
-This repository is for participants of the hackathon 2024 in Brussels. Use it to share ideas, create issues, manage projects, publish materials and develop code.
+
+This repository is for participants of the April 2024 [B-Cubed Hackathon](https://b-cubed.eu/b-cubed-hackathon) in Brussels. Use it to share ideas, create issues, manage projects, publish materials and develop code. We can also create a project-specific repository for you.
 
 ## Projects
 
