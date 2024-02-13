@@ -14,7 +14,7 @@ editor_options:
 bibliography: references.bib
 ---
 
-```{r setup, include=FALSE}
+```{r setup, message=FALSE, warning=FALSE}
 # Set up
 library(knitr)
 library(here)
@@ -23,7 +23,11 @@ opts_chunk$set(
   message = FALSE,
   warning = FALSE)
 opts_knit$set(root.dir = here())
+
+# Packages
+library(tidyverse)
 ```
+
 
 # Introduction
 
@@ -59,4 +63,86 @@ We need to simulate three different processes.
 
 This is related to different variables that depend on *species*, *observation*, *space* and *time*.
 
+In this project, we will focus on the occurrence and detection processes. For grid designation, R code is readily available.
+We could write a function for each process that can each contain multiple helper functions.
+
+```{r}
+tibble(
+  process = c(
+    rep("occurrence", 2),
+    rep("detection", 3)
+  ),
+  variable = c(
+    "rarity",
+    "spatial clustering",
+    "detection probability",
+    "sampling effort",
+    "spatial uncertainty"
+  ),
+  dependency = c(
+    "species, time",
+    "species",
+    "species",
+    "space, time",
+    "observation"
+  )) %>%
+  kable()
+```
+
+
+## Occurrence process
+
+To simulate the occurrence of species in a certain spatial region, we need information on the rarity as well as a measure for spatial clustering.
+
+### Rarity
+
+-  Rarity can be different for each **species** and can change over **time**.
+-  Values related to abundance/density
+-  Implementation
+   - Species: abundance/density for each species. Density can be converted to abundance based on the area of the polygon. Abundances can be generated from the Poisson distribution (`rpois()`)
+   - Time: the order of random walk or a function (e.g. sinus, linear, exponential …)
+
+```{r}
+# Set seed for reproducibility
+set.seed(123)
+
+# Number of time points
+n_time_points <- 50
+
+# Time vector
+time <- 1:n_time_points
+
+# Sinusoidal trend parameters
+amplitude <- 10  # Adjust the amplitude as needed
+frequency <- 0.1  # Adjust the frequency as needed
+
+# Generate sinusoidal trend
+sinusoidal_trend <- amplitude * sin(2 * pi * frequency * time)
+
+# Poisson distribution parameters
+lambda <- 100 - 1*time
+
+# Number of simulations
+n_sim <- 100
+data_abundances <- vector("list", length = n_sim)
+
+for (i in seq_len(n_sim)) {
+  # Simulate abundances with Poisson distribution and sinusoidal trend
+  abundances <- rpois(n_time_points, lambda + sinusoidal_trend)
+  
+  # Create a data frame
+  data_abundances[[i]] <- data.frame(time = time, abundance = abundances,
+                                     sim = i)
+}
+data <- do.call(rbind.data.frame, data_abundances)
+
+# Plot the simulated abundances over time using ggplot2
+ggplot(data, aes(x = time, y = abundance, colour = factor(sim))) +
+  geom_line() +
+  labs(x = "Time", y = "Abundance",
+       title = paste(n_sim, "simulated abundances with linear decreasing\n",
+                     "sinusoidal trend over time")) +
+  scale_y_continuous(limits = c(0, NA)) +
+  theme(legend.position = "")
+```
 
