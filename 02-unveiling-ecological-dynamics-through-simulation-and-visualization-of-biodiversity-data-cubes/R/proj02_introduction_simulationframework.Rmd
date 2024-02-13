@@ -164,6 +164,7 @@ x_values <- seq(0, 1, length.out = n)
 alpha <- c(0.5, 2, 2, 2, 7, 8)
 beta <- c(0.5, 1, 2, 7, 2, 8)
 
+# Calculate densities in dataframe
 data_beta <- tibble(
   alpha = alpha,
   beta = beta) %>%
@@ -183,7 +184,3 @@ ggplot(data_beta, aes(x = y_values, y = density)) +
   facet_wrap(~Distribution) +
   theme(legend.position = "")
 ```
-
-
-
-
