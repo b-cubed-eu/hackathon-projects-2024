@@ -189,7 +189,7 @@ ggplot(data_beta, aes(x = y_values, y = density)) +
 
 ## Detection process
 
-To simulate the detection of individuals in a certain spatial region, we need information on the detection probability	of each species and sampling effort. There is also always a certain spatial uncertainty related to each observation (`coordinateUncertaintyInMeters`).
+To simulate the detection of individuals in a certain spatial region, we need information on the detection probability	of each species and sampling effort. The probability of detecting an individual can be the product of detection probability and sampling probability. Once observed, there is also always a certain spatial uncertainty related to each observation (`coordinateUncertaintyInMeters`).
 
 ### Detection probability
 -  Detection probability can be different for each *species*.
@@ -229,3 +229,12 @@ ggplot(data_beta, aes(x = x_values, y = density)) +
   facet_wrap(~Distribution) +
   theme(legend.position = "")
 ```
+
+### Sampling effort
+
+-  Sampling effort can be different in *space* and *time*.
+-  Values are weights related to number of visits (?)
+-  Implementation
+   - Space: raster of bias weights to be applied to the sampling of occurrences. Higher weights mean a higher probability of sampling
+   - Time: raster can be the same for each time period or differ
+   - see `weights` argument in the `sampleOccurrences()` function of **virtualspecies** package
