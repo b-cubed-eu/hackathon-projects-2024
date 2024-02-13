@@ -25,3 +25,19 @@ opts_chunk$set(
 opts_knit$set(root.dir = here())
 ```
 
+# Technical setup and requirements
+
+Download R, RStudio, git
+
+Set up RStudio, git
+
+Clone GitHub repository [hackathon-projects-2024](https://github.com/b-cubed-eu/hackathon-projects-2024) in RStudio.
+
+pull changes
+
+create branches
+
+push changes
+
+
+
