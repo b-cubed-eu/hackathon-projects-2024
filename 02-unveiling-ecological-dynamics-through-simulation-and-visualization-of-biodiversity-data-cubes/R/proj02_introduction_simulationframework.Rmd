@@ -184,3 +184,9 @@ ggplot(data_beta, aes(x = y_values, y = density)) +
   facet_wrap(~Distribution) +
   theme(legend.position = "")
 ```
+
+
+## Detection process
+
+To simulate the detection of individuals in a certain spatial region, we need information on the detection probability	of each species and sampling effort. There is also always a certain spatial uncertainty related to each observation (coordinateUncertaintyInMeters).
+
