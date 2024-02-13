@@ -47,5 +47,16 @@ create branches
 push changes
 
 
+# Monte Carlo simulation framework for biodiversity data cubes
+
+In this project, we will aim to create a simulation framework for biodiversity data cubes based on [Monte Carlo methods](https://en.wikipedia.org/wiki/Monte_Carlo_method). 
+
+We need to simulate three different processes. 
+
+1.  occurrence process
+2.  detection process
+3.  grid designation process
+
+This is related to different variables that depend on *species*, *observation*, *space* and *time*.
 
 
