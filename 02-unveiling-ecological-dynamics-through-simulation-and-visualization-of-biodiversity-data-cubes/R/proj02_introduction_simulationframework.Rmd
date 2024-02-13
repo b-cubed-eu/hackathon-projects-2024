@@ -95,7 +95,7 @@ To simulate the occurrence of species in a certain spatial region, we need infor
 
 ### Rarity
 
--  Rarity can be different for each **species** and can change over **time**.
+-  Rarity can be different for each *species* and can change over *time*.
 -  Values related to abundance/density
 -  Implementation
    - Species: abundance/density for each species. Density can be converted to abundance based on the area of the polygon. Abundances can be generated from the Poisson distribution (`rpois()`)
@@ -146,11 +146,12 @@ ggplot(data, aes(x = time, y = abundance, colour = factor(sim))) +
 ```
 
 ### Spatial clustering
--  Spatial clustering can be different for each **species** and can change over **time**.
+
+-  Spatial clustering can be different for each *species*.
 -  Values related to clustering ([Moran’s I](https://en.wikipedia.org/wiki/Moran%27s_I)? value between -1 (regular) to 0 (random) to 1 (clustered))
 -  Implementation
    - Species: Get number of coordinate pairs based on clustering value equal to the abundance of the species.
-   - Clustering value = Moran’s I? `runif(n, min = 0, max = 1)` for uniform distribution between -1 and 1 or the Beta distribution to get a skewed distribution between -1 and 1. Let $X \sim Beta(\alpha, \beta)$, then then the transformation $Y = 2X − 1$ will result in a distribution with values between -1 and 1.
+   - Clustering value = Moran’s I? `runif(n, min = -1, max = 1)` for uniform distribution between -1 and 1 or the Beta distribution to get a skewed distribution between -1 and 1. Let $X \sim Beta(\alpha, \beta)$, then then the transformation $Y = 2X − 1$ will result in a distribution with values between -1 and 1.
 
 ```{r}
 # Set seed for reproducibility
@@ -188,5 +189,43 @@ ggplot(data_beta, aes(x = y_values, y = density)) +
 
 ## Detection process
 
-To simulate the detection of individuals in a certain spatial region, we need information on the detection probability	of each species and sampling effort. There is also always a certain spatial uncertainty related to each observation (coordinateUncertaintyInMeters).
+To simulate the detection of individuals in a certain spatial region, we need information on the detection probability	of each species and sampling effort. There is also always a certain spatial uncertainty related to each observation (`coordinateUncertaintyInMeters`).
 
+### Detection probability
+-  Detection probability can be different for each *species*.
+-  Values are a probability between 0 (never detected) to 1 (always detected)
+-  Implementation
+   - Species: Probability between 0 and 1 for each species. `runif(n, min = 0, max = 1)` for uniform distribution between 0 and 1 or the Beta distribution to get a skewed distribution between -1 and 1.
+   - see `detection.probability` argument in the `sampleOccurrences()` function of the **virtualspecies** package
+
+```{r}
+# Set seed for reproducibility
+set.seed(123)
+
+# Generate data
+n <- 100
+x_values <- seq(0, 1, length.out = n)
+
+# Parameters Beta distribution
+alpha <- c(0.5, 2, 2, 2, 7, 8)
+beta <- c(0.5, 1, 2, 7, 2, 8)
+
+# Calculate densities in dataframe
+data_beta <- tibble(
+  alpha = alpha,
+  beta = beta) %>%
+  expand(nesting(alpha, beta), x_values) %>%
+  rowwise() %>%
+  mutate(
+    density = dbeta(x_values, shape1 = alpha, shape2 = beta),
+    Distribution = paste0("Beta(", alpha, ",", beta, ")")
+  )
+
+# Plot the densities
+ggplot(data_beta, aes(x = x_values, y = density)) +
+  geom_line() +
+  labs(x = "Detection probability", y = "Density",
+       title = "Densities of different Beta distributions") +
+  facet_wrap(~Distribution) +
+  theme(legend.position = "")
+```
