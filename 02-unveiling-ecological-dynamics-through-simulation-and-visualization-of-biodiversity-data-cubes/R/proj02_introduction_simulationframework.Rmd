@@ -11,7 +11,6 @@ output:
     toc_collapsed: true
 editor_options: 
   chunk_output_type: console
-bibliography: references.bib
 ---
 
 ```{r setup, message=FALSE, warning=FALSE}
@@ -113,8 +112,8 @@ n_time_points <- 50
 time <- 1:n_time_points
 
 # Sinusoidal trend parameters
-amplitude <- 10  # Adjust the amplitude as needed
-frequency <- 0.1  # Adjust the frequency as needed
+amplitude <- 10
+frequency <- 0.1
 
 # Generate sinusoidal trend
 sinusoidal_trend <- amplitude * sin(2 * pi * frequency * time)
@@ -139,10 +138,52 @@ data <- do.call(rbind.data.frame, data_abundances)
 # Plot the simulated abundances over time using ggplot2
 ggplot(data, aes(x = time, y = abundance, colour = factor(sim))) +
   geom_line() +
-  labs(x = "Time", y = "Abundance",
-       title = paste(n_sim, "simulated abundances with linear decreasing\n",
+  labs(x = "Time", y = "Species abundance",
+       title = paste(n_sim, "simulated abundances with linear decreasing",
                      "sinusoidal trend over time")) +
   scale_y_continuous(limits = c(0, NA)) +
   theme(legend.position = "")
 ```
+
+### Spatial clustering
+-  Spatial clustering can be different for each **species** and can change over **time**.
+-  Values related to clustering (Moran’s I? value between -1 (regular) to 0 (random) to 1 (clustered))
+-  Implementation
+   - Species: Get number of coordinate pairs based on clustering value equal to the abundance of the species.
+   - Clustering value = Moran’s I? `runif(n, min = 0, max = 1)` for uniform distribution between -1 and 1 or the Beta distribution to get a skewed distribution between -1 and 1. Let $X \sim Beta(\alpha, \beta)$, then then the transformation $Y = 2X − 1$ will result in a distribution with values between -1 and 1.
+
+```{r}
+# Set seed for reproducibility
+set.seed(123)
+
+# Generate data
+n <- 100
+x_values <- seq(0, 1, length.out = n)
+
+# Parameters Beta distribution
+alpha <- c(0.5, 2, 2, 2, 7, 8)
+beta <- c(0.5, 1, 2, 7, 2, 8)
+
+data_beta <- tibble(
+  alpha = alpha,
+  beta = beta) %>%
+  expand(nesting(alpha, beta), x_values) %>%
+  rowwise() %>%
+  mutate(
+    density = dbeta(x_values, shape1 = alpha, shape2 = beta),
+    y_values = 2 * x_values - 1,
+    Distribution = paste0("Beta(", alpha, ",", beta, ")")
+  )
+
+# Plot the densities
+ggplot(data_beta, aes(x = y_values, y = density)) +
+  geom_line() +
+  labs(x = "Moran's I", y = "Density",
+       title = "Densities of different Beta distributions") +
+  facet_wrap(~Distribution) +
+  theme(legend.position = "")
+```
+
+
+
 
