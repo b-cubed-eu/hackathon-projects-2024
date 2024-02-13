@@ -147,7 +147,7 @@ ggplot(data, aes(x = time, y = abundance, colour = factor(sim))) +
 
 ### Spatial clustering
 -  Spatial clustering can be different for each **species** and can change over **time**.
--  Values related to clustering (Moran’s I? value between -1 (regular) to 0 (random) to 1 (clustered))
+-  Values related to clustering ([Moran’s I](https://en.wikipedia.org/wiki/Moran%27s_I)? value between -1 (regular) to 0 (random) to 1 (clustered))
 -  Implementation
    - Species: Get number of coordinate pairs based on clustering value equal to the abundance of the species.
    - Clustering value = Moran’s I? `runif(n, min = 0, max = 1)` for uniform distribution between -1 and 1 or the Beta distribution to get a skewed distribution between -1 and 1. Let $X \sim Beta(\alpha, \beta)$, then then the transformation $Y = 2X − 1$ will result in a distribution with values between -1 and 1.
