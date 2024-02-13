@@ -25,6 +25,13 @@ opts_chunk$set(
 opts_knit$set(root.dir = here())
 ```
 
+# Introduction
+
+Ecological systems are inherently variable, and a single dataset does not capture the full range of possible conditions. Simulations allow us to explore a broader spectrum of scenarios, considering different combinations of variables and their interactions. Ecological processes unfold dynamically over time, and a single snapshot of data does not capture the temporal aspects. Simulations enable the modelling of dynamic processes, allowing researchers to observe and analyse changes over various time scales.
+ 
+As far as we know, there is no simulation framework present for biodiversity data cubes. A simulation framework in this context would help to examine the generalisability of the (statistical) properties of biodiversity data cubes and the derived indicators. 
+
+
 # Technical setup and requirements
 
 Download R, RStudio, git
@@ -38,6 +45,7 @@ pull changes
 create branches
 
 push changes
+
 
 
 
