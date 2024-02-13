@@ -142,7 +142,8 @@ ggplot(data, aes(x = time, y = abundance, colour = factor(sim))) +
        title = paste(n_sim, "simulated abundances with linear decreasing",
                      "sinusoidal trend over time")) +
   scale_y_continuous(limits = c(0, NA)) +
-  theme(legend.position = "")
+  theme(legend.position = "") +
+  theme_minimal()
 ```
 
 ### Spatial clustering
@@ -183,7 +184,8 @@ ggplot(data_beta, aes(x = y_values, y = density)) +
   labs(x = "Moran's I", y = "Density",
        title = "Densities of different Beta distributions") +
   facet_wrap(~Distribution) +
-  theme(legend.position = "")
+  theme(legend.position = "") +
+  theme_minimal()
 ```
 
 
@@ -196,7 +198,7 @@ To simulate the detection of individuals in a certain spatial region, we need in
 -  Values are a probability between 0 (never detected) to 1 (always detected)
 -  Implementation
    - Species: Probability between 0 and 1 for each species. `runif(n, min = 0, max = 1)` for uniform distribution between 0 and 1 or the Beta distribution to get a skewed distribution between -1 and 1.
-   - see `detection.probability` argument in the `sampleOccurrences()` function of the **virtualspecies** package
+   - See `detection.probability` argument in the `sampleOccurrences()` function of the **virtualspecies** package
 
 ```{r}
 # Set seed for reproducibility
@@ -227,7 +229,8 @@ ggplot(data_beta, aes(x = x_values, y = density)) +
   labs(x = "Detection probability", y = "Density",
        title = "Densities of different Beta distributions") +
   facet_wrap(~Distribution) +
-  theme(legend.position = "")
+  theme(legend.position = "") +
+  theme_minimal()
 ```
 
 ### Sampling effort
@@ -237,4 +240,51 @@ ggplot(data_beta, aes(x = x_values, y = density)) +
 -  Implementation
    - Space: raster of bias weights to be applied to the sampling of occurrences. Higher weights mean a higher probability of sampling
    - Time: raster can be the same for each time period or differ
-   - see `weights` argument in the `sampleOccurrences()` function of **virtualspecies** package
+   - See `weights` argument in the `sampleOccurrences()` function of **virtualspecies** package
+
+### Spatial uncertainty
+
+-  Spatial uncertainty can be different for each *observation* or the same
+-  Values are coordinate uncertainty in meters around observation
+-  Implementation
+   - Observation: distribution (uniform, (truncated) normal, gamma …) with varying upper bound, can be the same or different for all observations or something in between (extra parameter?)
+
+```{r}
+# Parameters for the truncated normal distribution
+mean_val <- 20
+sd_val <- 10
+
+# Parameters for the Gamma distribution
+shape <- 2
+rate <- 0.1
+
+# Set the lower limit for the truncated distributions
+lower_limit <- 0
+
+# Generate x values for the plot
+x_values <- seq(lower_limit, mean_val + 5 * sd_val, length.out = 1000)
+
+# Calculate the probability density function (PDF) for the positively truncated
+# Normal distribution
+density_values_normal <- dnorm(x_values, mean = mean_val, sd = sd_val)
+
+# Calculate the probability density function (PDF) for the positively truncated
+# Gamma distribution
+density_values_gamma <- dgamma(x_values, shape = shape, rate = rate)
+
+# Create a data frame
+data <- data.frame(
+  x = rep(x_values, 2),
+  density = c(density_values_normal, density_values_gamma),
+  distribution = rep(c(paste0("Normal", "(", mean_val, ",", sd_val, ")"),
+                       paste0("Gamma", "(", shape, ",", rate, ")")),
+                     each = length(x_values)))
+
+# Plot the positive distributions
+ggplot(data, aes(x = x, y = density)) +
+  geom_line() +
+  labs(x = "Coordinate uncertainty in meters", y = "Density",
+       title = "Positive distributions to sample spatial uncertainty") +
+  facet_wrap(~distribution) +
+  theme_minimal()
+```
