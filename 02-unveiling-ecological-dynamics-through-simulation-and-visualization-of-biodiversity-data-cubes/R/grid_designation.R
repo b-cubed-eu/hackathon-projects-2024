@@ -1,48 +1,59 @@
-grid_designation <- function(n_sim, observatins, grid, seed = 123, print = 100) {
-  out <- vector(mode = "list", length = n_sim)
+# observations: sf object with geometry (POINT) and coordinateUncertaintyInMeters column
+# grid: sf object with geometry (POLYGON)
+# id_col
+# seed: The seed for random number generation to make results reproducible. If NULL (the default), no seed is used.
 
-  set.seed(seed)
-  for (i in 1:n_sim) {
-    if (i %% print == 0) {
-      message(paste0("* Generating cube ", i, "/", n_sim))
-    }
-    # Get random point
-    test_points <-
-      points %>%
-      st_drop_geometry() %>%
-      mutate(random_angle = runif(nrow(points), 0, 2*pi),
-             random_r = sqrt(runif(nrow(points), 0, 1)) *
-               coordinateUncertaintyInMeters)
+grid_designation <- function(observations, grid, id_col = NULL, seed = NULL) {
+  # Load packages
+  stopifnot(requireNamespace("dplyr", quietly = TRUE))
+  stopifnot(requireNamespace("sf", quietly = TRUE))
+  require(dplyr)
+  require(sf)
 
-    test_points2 <-
-      test_points %>%
-      mutate(x_new = x + random_r * cos(random_angle),
-             y_new = y + random_r * sin(random_angle)) %>%
-      st_as_sf(coords = c("x_new", "y_new"), crs = st_crs(31370))
+  # checks: crs of observations and grid needs to be the same
 
-    # We assign each occurrence to a grid cell
-    intersect_grid <- st_intersection(test_points2, grid)
 
-    # Aggregate to get the cube
-    occ_cube <- intersect_grid %>%
-      st_drop_geometry() %>%
-      group_by(id) %>%
-      summarize(n = n(),
-                min_coord_uncertainty = min(coordinateUncertaintyInMeters)) %>%
-      ungroup() %>%
-      mutate(sim = i)
+  # Set seed if provided
+  if (!is.null(seed)) set.seed(seed)
 
-    out[[i]] <- occ_cube
+  # Get random point in uncertainty circle
+  uncertainty_points <-
+    observations |>
+    dplyr::mutate(
+      random_angle = runif(nrow(observations), 0, 2 * pi),
+      random_r = sqrt(runif(nrow(observations), 0, 1)) *
+        coordinateUncertaintyInMeters)
+
+  new_points <-
+    uncertainty_points |>
+    dplyr::mutate(
+      x_new = sf::st_coordinates(geometry)[, 1] +
+        random_r * cos(random_angle),
+      y_new = sf::st_coordinates(geometry)[, 2] +
+        random_r * sin(random_angle)) |>
+    sf::st_as_sf(coords = c("x_new", "y_new"), crs = sf::st_crs(observations))
+
+  # We assign each occurrence to a grid cell
+  if (is.null(id_col)) {
+    id_col <- "id"
+    grid[[id_col]] <- rownames(grid)
   }
+  intersect_grid <- sf::st_intersection(new_points, grid)
 
-  final_occs <- do.call(rbind.data.frame, out)
+  # Aggregate to get the cube
+  occ_cube_df <- intersect_grid |>
+    sf::st_drop_geometry() |>
+    dplyr::group_by_at(id_col) |>
+    dplyr::summarise(
+      n = dplyr::n(),
+      min_coord_uncertainty = min(coordinateUncertaintyInMeters)) |>
+    dplyr::ungroup()
 
   # Add zeroes
-  design <- expand_grid(id = grid$id, sim = seq_len(n_sim))
+  out_sf <- occ_cube_df |>
+    dplyr::full_join(grid, by = dpyr::join_by(!!id_col)) |>
+    dplyr::mutate(n = as.integer(ifelse(is.na(n), 0, n))) %>%
+    sf::st_as_sf(crs = sf::st_crs(grid))
 
-  out_df <- final_occs %>%
-    full_join(design, by = join_by(id, sim)) %>%
-    mutate(n = ifelse(is.na(n), 0, n))
-
-  return(out_df)
+  return(out_sf)
 }
