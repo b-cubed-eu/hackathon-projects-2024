@@ -25,6 +25,7 @@ opts_knit$set(root.dir = here())
 
 # Packages
 library(tidyverse)
+library(sf)
 ```
 
 # Introduction
@@ -151,9 +152,6 @@ ggplot(data_abundances, aes(x = time, y = abundance, colour = factor(sim))) +
    - Clustering value = Moran’s I? `runif(n, min = -1, max = 1)` for uniform distribution between -1 and 1 or the Beta distribution to get a skewed distribution between -1 and 1. Let $X \sim Beta(\alpha, \beta)$, then then the transformation $Y = 2X − 1$ will result in a distribution with values between -1 and 1.
 
 ```{r clustering-beta}
-# Set seed for reproducibility
-set.seed(123)
-
 # Generate data
 n <- 100
 x_values <- seq(0, 1, length.out = n)
@@ -196,9 +194,6 @@ To simulate the detection of individuals in a certain spatial region, we need in
    - See `detection.probability` argument in the `sampleOccurrences()` function of the **virtualspecies** package
 
 ```{r detection-beta}
-# Set seed for reproducibility
-set.seed(123)
-
 # Generate data
 n <- 100
 x_values <- seq(0, 1, length.out = n)
@@ -283,6 +278,82 @@ ggplot(coord_uncertainty_df, aes(x = x, y = density)) +
        title = "Positive distributions to sample spatial uncertainty") +
   facet_wrap(~distribution) +
   theme_minimal()
+```
+
+## Grid designation process
+
+Observation to grid designation is not the focus of this project.
+Therefore R code to assign observations to grid cells is already available.
+Here we briefly demonstrate how this function works.
+
+```{r}
+# Set seed for reproducibility
+set.seed(123)
+
+# Number of observations and spatial limits
+n_points <- 4
+xlim <- c(3841000, 3842000)
+ylim <- c(3110000, 3112000)
+
+# Create random points
+observations_sf <- 
+  tibble(
+    lat = runif(n_points, ylim[1], ylim[2]),
+    long = runif(n_points, xlim[1], xlim[2])
+  ) %>%
+  st_as_sf(coords = c("long", "lat"), crs = 3035) %>%
+  mutate(coordinateUncertaintyInMeters = rgamma(n_points, shape = 5, rate = 0.1))
+
+# Add buffer uncertainty in meters around points
+observations_buffered <- observations_sf %>%
+  st_buffer(observations_sf$coordinateUncertaintyInMeters)
+
+# Create grid
+grid_df <- st_make_grid(
+  observations_buffered,
+  square = TRUE,
+  cellsize = c(200, 200)
+  ) %>%
+  st_sf() %>%
+  mutate(id = row_number())
+```
+
+Consider `r n_points` of observations each with a specific coordinate uncertainty.
+We can superimpose a grid to create a data cube.
+
+```{r}
+ggplot() +
+  geom_sf(data = grid_df, fill = alpha("cornflowerblue", 0.5), linewidth = 1) +
+  geom_sf(data = observations_sf, colour = "firebrick") +
+  geom_sf(data = observations_buffered, fill = alpha("firebrick", 0.5)) +
+  theme_void()
+```
+
+The function `grid_designation()` designates observations to cells of a given grid to create an aggregated data cube.
+The first argument (`observations`) is an sf object with POINT geometry and a `coordinateUncertaintyInMeters` column.
+The first argument (`grid`) is an sf object with POLYGON geometry (typically a grid) to which observations should be designated
+Further we have the optional argument `id_col` which is the column name of the column with unique ids for each grid cell. If NULL (the default), a column `"id"` is created were the column numbers represent the unique ids.
+And the final argument seed which you can specify for random number generation to make results reproducible. If NULL (the default), no seed is used.
+The function returns an sf object with the number of observations, geometry and minimal coordinate uncertainty per grid cell.
+Here we visualise the output where we see the number of observation per grid cell for this imaginary species in comparison to the original observations (with their uncertainty).
+
+```{r}
+# Source function to for observation to grid designation 
+source(here("R", "grid_designation.R"))
+
+# Create occurrence cube
+occurrence_cube_df <- grid_designation(
+  observations = observations_sf,
+  grid = grid_df,
+  id_col = NULL,
+  seed = 123)
+
+# Visualise output
+ggplot() +
+  geom_sf(data = occurrence_cube_df) +
+  geom_sf_text(data = occurrence_cube_df, aes(label = n)) +
+  geom_sf(data = observations_buffered, fill = alpha("firebrick", 0.5)) +
+  theme_void()
 ```
 
 # Coding
