@@ -51,17 +51,15 @@ push changes
 
 In this project, we will aim to create a simulation framework for biodiversity data cubes based on [Monte Carlo methods](https://en.wikipedia.org/wiki/Monte_Carlo_method). 
 
-We need to simulate three different processes. 
+We need to simulate three different processes related to different variables that depend on *species*, *observation*, *space* and *time*.
 
 1.  occurrence process
 2.  detection process
 3.  grid designation process
 
-This is related to different variables that depend on *species*, *observation*, *space* and *time*.
-
 In this project, we will focus on the occurrence and detection processes. For grid designation, R code is already available.
 
-```{r processes-tab}
+```{r processes-tab, echo=FALSE}
 tibble(
   process = c(
     rep("occurrence", 2),
@@ -82,6 +80,10 @@ tibble(
     "observation"
   )) %>%
   kable()
+```
+
+```{r visual-framework, out.width="80%", fig.align="center", echo=FALSE}
+include_graphics(here("media", "visual_proposal.png"), error = FALSE)
 ```
 
 ## Occurrence process
@@ -292,7 +294,7 @@ Here are some ideas
 -  each function simulates for 1 species, the user can easily simulate multiple species using loops,  `apply()` family functions, ...
 -  as input we need a polygon to set the spatial extent or we could create a polygon based on X and Y coordinates given by the user?
 
-```{r coding-tab}
+```{r coding-tab, echo=FALSE}
 tibble(
   process = c(
     rep("occurrence", 2),
