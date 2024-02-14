@@ -32,18 +32,19 @@ library(tidyverse)
 Ecological systems are inherently variable, and a single dataset does not capture the full range of possible conditions. *Simulations* allow us to explore a broader *spectrum of scenarios*, considering different combinations of *parameters*. As far as we know, there is no simulation framework present for *biodiversity data cubes*. A simulation framework in this context would help to examine the generalisability of the (statistical) properties of these data cubes and the derived indicators.
 
 # Technical setup and requirements
+## Software installation
 
-Download R, RStudio, git
+To join this project there are three software requirements: R, RStudio and Git.
+R is a programming language and environment specifically designed for statistical computing and data analysis.
+RStudio is an integrated development environment (IDE) for R that makes working with R more accessible and efficient.
+Git is a distributed version control system used for tracking changes in source code during software development.
+You can download R and RStudio from [here](https://posit.co/download/rstudio-desktop/) adn Git from [here](https://git-scm.com/downloads).
 
-Set up RStudio, git
+## Setting up version control for efficient collaboration
 
-Clone GitHub repository [hackathon-projects-2024](https://github.com/b-cubed-eu/hackathon-projects-2024) in RStudio.
-
-pull changes
-
-create branches
-
-push changes
+If you do not have a GitHub account, you can sign up [for a new GitHub account](https://docs.github.com/en/get-started/start-your-journey/creating-an-account-on-github). 
+If this is not yet done, make sure to [connect RStudio to Git and GitHub](https://happygitwithr.com/rstudio-git-github).
+Clone the hackathon GitHub repository [hackathon-projects-2024](https://github.com/b-cubed-eu/hackathon-projects-2024) via RStudio.
 
 # Monte Carlo simulation framework for biodiversity data cubes
 
