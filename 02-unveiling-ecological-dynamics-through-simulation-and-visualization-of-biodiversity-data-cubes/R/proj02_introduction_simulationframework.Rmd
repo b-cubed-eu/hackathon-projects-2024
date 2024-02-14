@@ -14,7 +14,7 @@ editor_options:
 ---
 
 ```{r setup, message=FALSE, warning=FALSE}
-# Set up
+# Setup
 library(knitr)
 library(here)
 opts_chunk$set(
@@ -27,13 +27,11 @@ opts_knit$set(root.dir = here())
 library(tidyverse)
 ```
 
-
 # Introduction
 
 Ecological systems are inherently variable, and a single dataset does not capture the full range of possible conditions. Simulations allow us to explore a broader spectrum of scenarios, considering different combinations of variables and their interactions. Ecological processes unfold dynamically over time, and a single snapshot of data does not capture the temporal aspects. Simulations enable the modelling of dynamic processes, allowing researchers to observe and analyse changes over various time scales.
  
 As far as we know, there is no simulation framework present for biodiversity data cubes. A simulation framework in this context would help to examine the generalisability of the (statistical) properties of biodiversity data cubes and the derived indicators. 
-
 
 # Technical setup and requirements
 
@@ -65,7 +63,7 @@ This is related to different variables that depend on *species*, *observation*, 
 In this project, we will focus on the occurrence and detection processes. For grid designation, R code is readily available.
 We could write a function for each process that can each contain multiple helper functions.
 
-```{r}
+```{r processes-tab}
 tibble(
   process = c(
     rep("occurrence", 2),
@@ -88,7 +86,6 @@ tibble(
   kable()
 ```
 
-
 ## Occurrence process
 
 To simulate the occurrence of species in a certain spatial region, we need information on the rarity as well as a measure for spatial clustering.
@@ -101,7 +98,7 @@ To simulate the occurrence of species in a certain spatial region, we need infor
    - Species: abundance/density for each species. Density can be converted to abundance based on the area of the polygon. Abundances can be generated from the Poisson distribution (`rpois()`)
    - Time: the order of random walk or a function (e.g. sinus, linear, exponential …)
 
-```{r}
+```{r abundance-sim}
 # Set seed for reproducibility
 set.seed(123)
 
@@ -123,27 +120,27 @@ lambda <- 100 - 1*time
 
 # Number of simulations
 n_sim <- 100
-data_abundances <- vector("list", length = n_sim)
+list_abundances <- vector("list", length = n_sim)
 
 for (i in seq_len(n_sim)) {
   # Simulate abundances with Poisson distribution and sinusoidal trend
   abundances <- rpois(n_time_points, lambda + sinusoidal_trend)
   
   # Create a data frame
-  data_abundances[[i]] <- data.frame(time = time, abundance = abundances,
+  list_abundances[[i]] <- data.frame(time = time, abundance = abundances,
                                      sim = i)
 }
-data <- do.call(rbind.data.frame, data_abundances)
+data_abundances <- do.call(rbind.data.frame, list_abundances)
 
 # Plot the simulated abundances over time using ggplot2
-ggplot(data, aes(x = time, y = abundance, colour = factor(sim))) +
+ggplot(data_abundances, aes(x = time, y = abundance, colour = factor(sim))) +
   geom_line() +
   labs(x = "Time", y = "Species abundance",
        title = paste(n_sim, "simulated abundances with linear decreasing",
                      "sinusoidal trend over time")) +
   scale_y_continuous(limits = c(0, NA)) +
-  theme(legend.position = "") +
-  theme_minimal()
+  theme_minimal() +
+  theme(legend.position = "")
 ```
 
 ### Spatial clustering
@@ -154,7 +151,7 @@ ggplot(data, aes(x = time, y = abundance, colour = factor(sim))) +
    - Species: Get number of coordinate pairs based on clustering value equal to the abundance of the species.
    - Clustering value = Moran’s I? `runif(n, min = -1, max = 1)` for uniform distribution between -1 and 1 or the Beta distribution to get a skewed distribution between -1 and 1. Let $X \sim Beta(\alpha, \beta)$, then then the transformation $Y = 2X − 1$ will result in a distribution with values between -1 and 1.
 
-```{r}
+```{r clustering-beta}
 # Set seed for reproducibility
 set.seed(123)
 
@@ -166,8 +163,8 @@ x_values <- seq(0, 1, length.out = n)
 alpha <- c(0.5, 2, 2, 2, 7, 8)
 beta <- c(0.5, 1, 2, 7, 2, 8)
 
-# Calculate densities in dataframe
-data_beta <- tibble(
+# Calculate Beta densities in dataframe
+clustering_df <- tibble(
   alpha = alpha,
   beta = beta) %>%
   expand(nesting(alpha, beta), x_values) %>%
@@ -175,19 +172,18 @@ data_beta <- tibble(
   mutate(
     density = dbeta(x_values, shape1 = alpha, shape2 = beta),
     y_values = 2 * x_values - 1,
-    Distribution = paste0("Beta(", alpha, ",", beta, ")")
+    distribution = paste0("Beta(", alpha, ",", beta, ")")
   )
 
 # Plot the densities
-ggplot(data_beta, aes(x = y_values, y = density)) +
+ggplot(clustering_df, aes(x = y_values, y = density)) +
   geom_line() +
   labs(x = "Moran's I", y = "Density",
        title = "Densities of different Beta distributions") +
-  facet_wrap(~Distribution) +
+  facet_wrap(~distribution) +
   theme(legend.position = "") +
   theme_minimal()
 ```
-
 
 ## Detection process
 
@@ -200,7 +196,7 @@ To simulate the detection of individuals in a certain spatial region, we need in
    - Species: Probability between 0 and 1 for each species. `runif(n, min = 0, max = 1)` for uniform distribution between 0 and 1 or the Beta distribution to get a skewed distribution between -1 and 1.
    - See `detection.probability` argument in the `sampleOccurrences()` function of the **virtualspecies** package
 
-```{r}
+```{r detection-beta}
 # Set seed for reproducibility
 set.seed(123)
 
@@ -213,22 +209,22 @@ alpha <- c(0.5, 2, 2, 2, 7, 8)
 beta <- c(0.5, 1, 2, 7, 2, 8)
 
 # Calculate densities in dataframe
-data_beta <- tibble(
+detection_df <- tibble(
   alpha = alpha,
   beta = beta) %>%
   expand(nesting(alpha, beta), x_values) %>%
   rowwise() %>%
   mutate(
     density = dbeta(x_values, shape1 = alpha, shape2 = beta),
-    Distribution = paste0("Beta(", alpha, ",", beta, ")")
+    distribution = paste0("Beta(", alpha, ",", beta, ")")
   )
 
 # Plot the densities
-ggplot(data_beta, aes(x = x_values, y = density)) +
+ggplot(detection_df, aes(x = x_values, y = density)) +
   geom_line() +
   labs(x = "Detection probability", y = "Density",
        title = "Densities of different Beta distributions") +
-  facet_wrap(~Distribution) +
+  facet_wrap(~distribution) +
   theme(legend.position = "") +
   theme_minimal()
 ```
@@ -249,7 +245,7 @@ ggplot(data_beta, aes(x = x_values, y = density)) +
 -  Implementation
    - Observation: distribution (uniform, (truncated) normal, gamma …) with varying upper bound, can be the same or different for all observations or something in between (extra parameter?)
 
-```{r}
+```{r spat-uncertainty}
 # Parameters for the truncated normal distribution
 mean_val <- 20
 sd_val <- 10
@@ -273,15 +269,16 @@ density_values_normal <- dnorm(x_values, mean = mean_val, sd = sd_val)
 density_values_gamma <- dgamma(x_values, shape = shape, rate = rate)
 
 # Create a data frame
-data <- data.frame(
+coord_uncertainty_df <- tibble(
   x = rep(x_values, 2),
   density = c(density_values_normal, density_values_gamma),
   distribution = rep(c(paste0("Normal", "(", mean_val, ",", sd_val, ")"),
                        paste0("Gamma", "(", shape, ",", rate, ")")),
-                     each = length(x_values)))
+                     each = length(x_values))
+  )
 
 # Plot the positive distributions
-ggplot(data, aes(x = x, y = density)) +
+ggplot(coord_uncertainty_df, aes(x = x, y = density)) +
   geom_line() +
   labs(x = "Coordinate uncertainty in meters", y = "Density",
        title = "Positive distributions to sample spatial uncertainty") +
