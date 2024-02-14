@@ -47,7 +47,6 @@ create branches
 
 push changes
 
-
 # Monte Carlo simulation framework for biodiversity data cubes
 
 In this project, we will aim to create a simulation framework for biodiversity data cubes based on [Monte Carlo methods](https://en.wikipedia.org/wiki/Monte_Carlo_method). 
@@ -60,8 +59,7 @@ We need to simulate three different processes.
 
 This is related to different variables that depend on *species*, *observation*, *space* and *time*.
 
-In this project, we will focus on the occurrence and detection processes. For grid designation, R code is readily available.
-We could write a function for each process that can each contain multiple helper functions.
+In this project, we will focus on the occurrence and detection processes. For grid designation, R code is already available.
 
 ```{r processes-tab}
 tibble(
@@ -285,3 +283,35 @@ ggplot(coord_uncertainty_df, aes(x = x, y = density)) +
   facet_wrap(~distribution) +
   theme_minimal()
 ```
+
+# Coding
+
+Here are some ideas
+
+-  a function for each process that can each contain multiple helper functions
+-  each function simulates for 1 species, the user can easily simulate multiple species using loops,  `apply()` family functions, ...
+-  as input we need a polygon to set the spatial extent or we could create a polygon based on X and Y coordinates given by the user?
+
+```{r coding-tab}
+tibble(
+  process = c(
+    rep("occurrence", 2),
+    rep("detection", 3)
+  ),
+  variable = c(
+    "rarity",
+    "spatial clustering",
+    "detection probability",
+    "sampling effort",
+    "spatial uncertainty"
+  ),
+  default = c(
+    "rpois(1, rgamma(1, ?, ?)), where we only simulate for a single timepoint by default",
+    "runif(n, min = -1, max = 1)",
+    "1, all occurrences are detected",
+    "NULL, default no difference in sampling effort",
+    "25 meters?"
+  )) %>%
+  kable()
+```
+
