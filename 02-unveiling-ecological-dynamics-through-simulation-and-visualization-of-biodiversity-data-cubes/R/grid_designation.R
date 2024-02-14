@@ -50,8 +50,13 @@ grid_designation <- function(observations, grid, id_col = NULL, seed = NULL) {
   require(dplyr)
   require(sf)
 
-  # checks: crs of observations and grid needs to be the same
-
+  # checks:
+  # are observations and grid and sf object
+  # does observations have a coordinateUncertaintyInMeters column
+  # is id_col a character string or NULL
+  # if present, does the id_col contain unique ids?
+  # is seed an integer or NULL
+  # crs of observations and grid needs to be the same
 
   # Set seed if provided
   if (!is.null(seed)) set.seed(seed)
