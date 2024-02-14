@@ -39,7 +39,7 @@ To join this project there are three software requirements: R, RStudio and Git.
 R is a programming language and environment specifically designed for statistical computing and data analysis.
 RStudio is an integrated development environment (IDE) for R that makes working with R more accessible and efficient.
 Git is a distributed version control system used for tracking changes in source code during software development.
-You can download R and RStudio from [here](https://posit.co/download/rstudio-desktop/) adn Git from [here](https://git-scm.com/downloads).
+You can download R and RStudio from [here](https://posit.co/download/rstudio-desktop/) and Git from [here](https://git-scm.com/downloads).
 
 ## Setting up version control for efficient collaboration
 
@@ -283,7 +283,7 @@ ggplot(coord_uncertainty_df, aes(x = x, y = density)) +
 ## Grid designation process
 
 Observation to grid designation is not the focus of this project.
-Therefore R code to assign observations to grid cells is already available.
+Therefore R code to assign observations to grid cells is already available as a single function.
 Here we briefly demonstrate how this function works.
 
 ```{r}
@@ -329,11 +329,11 @@ ggplot() +
   theme_void()
 ```
 
-The function `grid_designation()` designates observations to cells of a given grid to create an aggregated data cube.
-The first argument (`observations`) is an sf object with POINT geometry and a `coordinateUncertaintyInMeters` column.
-The first argument (`grid`) is an sf object with POLYGON geometry (typically a grid) to which observations should be designated
-Further we have the optional argument `id_col` which is the column name of the column with unique ids for each grid cell. If NULL (the default), a column `"id"` is created were the column numbers represent the unique ids.
-And the final argument seed which you can specify for random number generation to make results reproducible. If NULL (the default), no seed is used.
+The function `grid_designation()` designates observations to cells of a given grid to create an aggregated data cube based on a random point within the uncertainty circle around each observation (each possible point within the uncertainty circle has the same probability to be selected).
+The argument `observations` is an sf object with POINT geometry and a `coordinateUncertaintyInMeters` column.
+The first argument `grid` is an sf object with POLYGON geometry (typically a grid) to which observations should be designated.
+Further we have the optional argument `id_col` which is the column name of the column with unique ids for each grid cell. If NULL (the default), a column `id` is created were the column numbers represent the unique ids.
+And the final argument `seed` which you can specify for random number generation to make results reproducible. If NULL (the default), no seed is used.
 The function returns an sf object with the number of observations, geometry and minimal coordinate uncertainty per grid cell.
 Here we visualise the output where we see the number of observation per grid cell for this imaginary species in comparison to the original observations (with their uncertainty).
 
@@ -379,7 +379,7 @@ tibble(
     "spatial uncertainty"
   ),
   default = c(
-    "rpois(1, rgamma(1, ?, ?)), where we only simulate for a single timepoint by default",
+    "rpois(1, rgamma(1, ?, ?)), where we only simulate for a single time point by default",
     "runif(n, min = -1, max = 1)",
     "1, all occurrences are detected",
     "NULL, default no difference in sampling effort",
