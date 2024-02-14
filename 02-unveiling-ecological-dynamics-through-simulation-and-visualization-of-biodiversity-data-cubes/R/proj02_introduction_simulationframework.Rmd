@@ -289,9 +289,10 @@ ggplot(coord_uncertainty_df, aes(x = x, y = density)) +
 
 Here are some ideas
 
--  a function for each process that can each contain multiple helper functions
--  each function simulates for 1 species, the user can easily simulate multiple species using loops,  `apply()` family functions, ...
--  as input we need a polygon to set the spatial extent or we could create a polygon based on X and Y coordinates given by the user?
+-  A function for each process that can contain multiple helper functions
+-  Each function simulates for 1 species, the user can easily simulate multiple species using loops, the `apply()` family functions, ...
+-  As input we need a polygon to set the spatial extent or we could create a polygon based on X and Y coordinates given by the user with **sf**?
+-  ...?
 
 ```{r coding-tab, echo=FALSE}
 tibble(
@@ -316,3 +317,13 @@ tibble(
   kable()
 ```
 
+# Visualisation
+
+At the end of the hackathon it would be nice to have some visual support (and not only lines of code) for the project.
+Here are some ideas
+
+-  After the occurrence process, abundances can be plotted over time and/or species distributions can be plotted in space over time.
+-  After the detection process, abundances can be plotted over time and/or species distributions can be plotted in space over time.
+-  Visualise differences between occurrence process and detection process?
+-  After the grid designation process occurrences/abundances can be plotted in space over time.
+-  ...?
