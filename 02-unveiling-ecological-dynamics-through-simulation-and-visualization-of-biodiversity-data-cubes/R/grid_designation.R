@@ -1,7 +1,47 @@
-# observations: sf object with geometry (POINT) and coordinateUncertaintyInMeters column
-# grid: sf object with geometry (POLYGON)
-# id_col
-# seed: The seed for random number generation to make results reproducible. If NULL (the default), no seed is used.
+#' Observations to grid designation to create a data cube
+#'
+#' The function designates observations to cells of a given grid to create an aggregated data cube.
+#'
+#' @param observations An sf object with POINT geometry and a `coordinateUncertaintyInMeters` column
+#' @param grid An sf object with POLYGON geometry (usually a grid) to which observations should be designated
+#' @param id_col The column name of the column with unique ids for each grid cell. If NULL (the default), a column `id` is created were the column numbers represent the unique ids.
+#' @param seed The seed for random number generation to make results reproducible. If NULL (the default), no seed is used.
+#'
+#' @returns An sf object with the number of observations, geometry and minimal coordinate uncertainty per grid cell.
+#'
+#' @examples
+#'
+#' library(sf)
+#'
+#' n_points <- 4
+#' xlim <- c(3841000, 3842000)
+#' ylim <- c(3110000, 3112000)
+#' coordinate_uncertainty <- rgamma(n_points, shape = 5, rate = 0.1)
+#'
+#' observations_sf <- data.frame(
+#'   lat = runif(n_points, ylim[1], ylim[2]),
+#'   long = runif(n_points, xlim[1], xlim[2]),
+#'   coordinateUncertaintyInMeters = coordinate_uncertainty
+#'   ) |>
+#'   st_as_sf(coords = c("long", "lat"), crs = 3035)
+#'
+#' # Add buffer uncertainty in meters around points
+#' observations_buffered <- observations_sf |>
+#'   st_buffer(observations_sf$coordinateUncertaintyInMeters)
+#'
+#' # Create grid
+#' grid_df <- st_make_grid(
+#'   observations_buffered,
+#'   square = TRUE,
+#'   cellsize = c(200, 200)
+#'   ) |>
+#'   st_as_sf()
+#'
+#' # Create occurrence cube
+#' grid_designation(
+#'   observations = observations_sf,
+#'   grid = grid_df,
+#'   seed = 123)
 
 grid_designation <- function(observations, grid, id_col = NULL, seed = NULL) {
   # Load packages
