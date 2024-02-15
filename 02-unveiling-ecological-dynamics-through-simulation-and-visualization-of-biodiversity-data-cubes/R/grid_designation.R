@@ -2,7 +2,7 @@
 #'
 #' The function designates observations to cells of a given grid to create an aggregated data cube.
 #'
-#' @param observations An sf object with POINT geometry and a `coordinateUncertaintyInMeters` column
+#' @param observations An sf object with POINT geometry and a `coordinateUncertaintyInMeters` column. If this column is not present, the function will assume no (zero meters) uncertainty around the points.
 #' @param grid An sf object with POLYGON geometry (usually a grid) to which observations should be designated
 #' @param id_col The column name of the column with unique ids for each grid cell. If NULL (the default), a column `id` is created were the column numbers represent the unique ids.
 #' @param seed The seed for random number generation to make results reproducible. If NULL (the default), no seed is used.
@@ -52,7 +52,6 @@ grid_designation <- function(observations, grid, id_col = NULL, seed = NULL) {
 
   # checks:
   # are observations and grid and sf object
-  # does observations have a coordinateUncertaintyInMeters column
   # is id_col a character string or NULL
   # if present, does the id_col contain unique ids?
   # is seed an integer or NULL
@@ -62,6 +61,12 @@ grid_designation <- function(observations, grid, id_col = NULL, seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
 
   # Get random point in uncertainty circle
+  if (!"coordinateUncertaintyInMeters" %in% names(observations)) {
+    observations$coordinateUncertaintyInMeters <- 0
+    warning(paste("No column `coordinateUncertaintyInMeters` present!",
+                  "Assuming no uncertainty around observations."))
+  }
+
   uncertainty_points <-
     observations |>
     dplyr::mutate(
