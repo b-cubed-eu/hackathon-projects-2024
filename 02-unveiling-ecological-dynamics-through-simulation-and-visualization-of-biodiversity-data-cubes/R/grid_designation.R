@@ -6,6 +6,8 @@
 #' @param grid An sf object with POLYGON geometry (usually a grid) to which observations should be designated
 #' @param id_col The column name of the column with unique ids for each grid cell. If NULL (the default), a column `id` is created were the column numbers represent the unique ids.
 #' @param seed The seed for random number generation to make results reproducible. If NULL (the default), no seed is used.
+#' @param randomisation Randomisation method used for sampling within uncertainty circle around each observation. By default "uniform" which means each point uncertainty circle has an equal probability to be selected. The other option is "normal" where a point is sampled from a bivariate Normal distribution with means equal to the observation point and the variance equal to (-`coordinateUncertaintyInMeters`^2) / (2 * log(1 - `p_norm`)) such that `p_norm`% of all possible samples from this Normal distribution fall within the uncertainty circle.
+#' @param p_norm Not applicable for uniform randomisation. The proportion of all possible samples from a a bivariate Normal distribution that fall within the uncertainty circle. If normal randomisation is used and no value is given, the default p_norm value is 0.95.
 #'
 #' @returns An sf object with the number of observations, geometry and minimal coordinate uncertainty per grid cell.
 #'
@@ -110,7 +112,7 @@ grid_designation <- function(observations, grid, id_col = NULL, seed = NULL,
       )
   }
 
-  # Get random point in uncertainty circle accoring to uniform or normal rules
+  # Get random point in uncertainty circle according to uniform or normal rules
   if (randomisation == "uniform") {
     # Get random angle and radius
     uncertainty_points <-
@@ -128,6 +130,7 @@ grid_designation <- function(observations, grid, id_col = NULL, seed = NULL,
           random_r * cos(random_angle),
         y_new = sf::st_coordinates(geometry)[, 2] +
           random_r * sin(random_angle)) |>
+      sf::st_drop_geometry() |>
       sf::st_as_sf(coords = c("x_new", "y_new"), crs = sf::st_crs(observations))
   } else if (randomisation == "normal") {
     # Set up probability of inclusion
@@ -150,7 +153,34 @@ grid_designation <- function(observations, grid, id_col = NULL, seed = NULL,
       }
     }
 
-    ...
+    # Package to sample from bivariate Normal distribution
+    if (!requireNamespace("mnormt", quietly = TRUE)) install.packages("mnormt")
+    require(mnormt)
+
+    # Calculate 2-dimensional means and variance-covariance matrices
+    means <- sf::st_coordinates(observations$geometry)
+    variances <- (-observations$coordinateUncertaintyInMeters^2) /
+      (2 * log(1 - p_norm))
+    varcovariances <- lapply(variances, function(var) {
+      matrix(c(var, -1, -1, var), nrow = 2)
+      })
+
+    # Sample new points from bivariate Normal distribution
+    new_points_list <- vector("list", length = nrow(observations))
+    for (i in seq_len(nrow(observations))) {
+      new_points_list[[i]] <- rmnorm(
+        1, mean = means[i,], varcov = varcovariances[[i]]
+        )
+    }
+    new_points_df <- do.call(rbind.data.frame, new_points_list)
+    names(new_points_df) <- c("x_new", "y_new")
+
+    # Create geometry and add uncertainties
+    new_points <- cbind(
+      new_points_df,
+      coordinateUncertaintyInMeters = observations$coordinateUncertaintyInMeters
+      ) |>
+      sf::st_as_sf(coords = c("x_new", "y_new"), crs = sf::st_crs(observations))
   } else {
     cli::cli_abort(c(
       '{.var randomisation} must be "uniform" or "normal".',
