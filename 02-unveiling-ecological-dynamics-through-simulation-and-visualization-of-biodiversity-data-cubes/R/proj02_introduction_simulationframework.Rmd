@@ -286,7 +286,7 @@ Observation to grid designation is not the focus of this project.
 Therefore R code to assign observations to grid cells is already available as a single function.
 Here we briefly demonstrate how this function works.
 
-```{r}
+```{r observation-data}
 # Set seed for reproducibility
 set.seed(123)
 
@@ -321,7 +321,7 @@ grid_df <- st_make_grid(
 Consider `r n_points` of observations each with a specific coordinate uncertainty.
 We can superimpose a grid to create a data cube.
 
-```{r}
+```{r visualise-observations}
 ggplot() +
   geom_sf(data = grid_df, linewidth = 1) +
   geom_sf(data = observations_sf, colour = "firebrick") +
@@ -340,7 +340,7 @@ Here, we visualise the output where we see the number of observation per grid ce
 We also show the sampled point within the uncertainty circle (these can be obtained with the argument `aggregate = FALSE`).
 If the argument `randomisation = "uniform"` (= default), then each point uncertainty circle has an equal probability to be selected. The other option `randomisation = "normal"` where a point is sampled from a bivariate Normal distribution, but this option is outside the scope of this project.
 
-```{r}
+```{r visualise-cubes}
 # Source function to for observation to grid designation 
 source(here("R", "grid_designation.R"))
 
