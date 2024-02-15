@@ -83,6 +83,8 @@ grid_designation <- function(observations, grid, id_col = NULL, seed = NULL) {
     id_col <- "id"
     grid[[id_col]] <- rownames(grid)
   }
+  sf::st_agr(new_points) <- "constant"
+  sf::st_agr(grid) <- "constant"
   intersect_grid <- sf::st_intersection(new_points, grid)
 
   # Aggregate to get the cube
