@@ -45,17 +45,33 @@
 
 grid_designation <- function(observations, grid, id_col = NULL, seed = NULL) {
   # Load packages
+  stopifnot(requireNamespace("cli", quietly = TRUE))
   stopifnot(requireNamespace("dplyr", quietly = TRUE))
   stopifnot(requireNamespace("sf", quietly = TRUE))
+  require(cli)
   require(dplyr)
   require(sf)
 
   # checks:
-  # are observations and grid and sf object
   # is id_col a character string or NULL
   # if present, does the id_col contain unique ids?
   # is seed an integer or NULL
   # crs of observations and grid needs to be the same
+  # the input dataframes must be sf objects
+  if (!"sf" %in% class(observations)) {
+    cli::cli_abort(c(
+      "{.var observations} must be an sf object",
+      "x" = "You've supplied a {.cls {class(observations)}} object."
+    ))
+  }
+  if (!"sf" %in% class(grid)) {
+    cli::cli_abort(c(
+      "{.var grid} must be an sf object.",
+      "x" = "You've supplied a {.cls {class(grid)}} object.")
+      )
+  }
+
+
 
   # Set seed if provided
   if (!is.null(seed)) set.seed(seed)
@@ -63,8 +79,9 @@ grid_designation <- function(observations, grid, id_col = NULL, seed = NULL) {
   # Get random point in uncertainty circle
   if (!"coordinateUncertaintyInMeters" %in% names(observations)) {
     observations$coordinateUncertaintyInMeters <- 0
-    warning(paste("No column `coordinateUncertaintyInMeters` present!",
-                  "Assuming no uncertainty around observations."))
+    cli::cli_warn(
+      paste("No column `coordinateUncertaintyInMeters` present!",
+            "Assuming no uncertainty around observations."))
   }
 
   uncertainty_points <-
