@@ -16,6 +16,7 @@
 #'
 #' library(sf)
 #'
+#' # Create four random points
 #' n_points <- 4
 #' xlim <- c(3841000, 3842000)
 #' ylim <- c(3110000, 3112000)
