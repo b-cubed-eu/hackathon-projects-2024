@@ -57,8 +57,8 @@ grid_designation <- function(observations, grid, id_col = NULL, seed = NULL) {
   if (!"sf" %in% class(observations)) {
     cli::cli_abort(c(
       "{.var observations} must be an sf object",
-      "x" = "You've supplied a {.cls {class(observations)}} object."
-    ))
+      "x" = "You've supplied a {.cls {class(observations)}} object.")
+      )
   }
   if (!"sf" %in% class(grid)) {
     cli::cli_abort(c(
@@ -76,27 +76,37 @@ grid_designation <- function(observations, grid, id_col = NULL, seed = NULL) {
       cli::cli_warn(
         paste('Column name "{id_col}" not present in provided grid!',
               "Creating ids based on row numbers.")
-      )
+        )
       id_col <- NULL
     } else if (length(unique(grid[[id_col]])) != nrow(grid)) {
       cli::cli_warn(
         paste("Column `{id_col}` does not contain unique ids for grid",
               "cells! Creating new ids based on row numbers.")
-      )
+        )
       id_col <- NULL
     }
   }
-  # is seed an integer or NULL
 
   # Set seed if provided
-  if (!is.null(seed)) set.seed(seed)
+  if (!is.null(seed)) {
+    if (is.numeric(seed) & length(seed) == 1) {
+      set.seed(seed)
+    } else {
+      cli::cli_abort(c(
+        "{.var seed} must be an numeric vector of length 1.",
+        "x" = paste("You've supplied a {.cls {class(seed)}} vector",
+                    "of length {length(seed)}."))
+        )
+    }
+  }
 
   # Get random point in uncertainty circle
   if (!"coordinateUncertaintyInMeters" %in% names(observations)) {
     observations$coordinateUncertaintyInMeters <- 0
     cli::cli_warn(
       paste("No column {.var coordinateUncertaintyInMeters} present!",
-            "Assuming no uncertainty around observations."))
+            "Assuming no uncertainty around observations.")
+      )
   }
 
   uncertainty_points <-
