@@ -44,10 +44,10 @@
 #'   seed = 123)
 
 grid_designation <- function(observations, grid, id_col = NULL, seed = NULL) {
-  # Load packages
-  stopifnot(requireNamespace("cli", quietly = TRUE))
-  stopifnot(requireNamespace("dplyr", quietly = TRUE))
-  stopifnot(requireNamespace("sf", quietly = TRUE))
+  # Load packages or install them if not available
+  if (!requireNamespace("cli", quietly = TRUE)) install.packages("cli")
+  if (!requireNamespace("dplyr", quietly = TRUE)) install.packages("dplyr")
+  if (!requireNamespace("sf", quietly = TRUE)) install.packages("sf")
   require(cli)
   require(dplyr)
   require(sf)
