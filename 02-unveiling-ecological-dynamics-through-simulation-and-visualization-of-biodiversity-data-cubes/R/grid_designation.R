@@ -6,10 +6,11 @@
 #' @param grid An sf object with POLYGON geometry (usually a grid) to which observations should be designated
 #' @param id_col The column name of the column with unique ids for each grid cell. If NULL (the default), a column `id` is created were the column numbers represent the unique ids.
 #' @param seed The seed for random number generation to make results reproducible. If NULL (the default), no seed is used.
+#' @param aggregate Logical. If TRUE (default), return data cube in aggregated form (grid with number of observations per grid cell). Otherwise return sampled points in uncertainty circle.
 #' @param randomisation Randomisation method used for sampling within uncertainty circle around each observation. By default "uniform" which means each point uncertainty circle has an equal probability to be selected. The other option is "normal" where a point is sampled from a bivariate Normal distribution with means equal to the observation point and the variance equal to (-`coordinateUncertaintyInMeters`^2) / (2 * log(1 - `p_norm`)) such that `p_norm`% of all possible samples from this Normal distribution fall within the uncertainty circle.
 #' @param p_norm Not applicable for uniform randomisation. The proportion of all possible samples from a a bivariate Normal distribution that fall within the uncertainty circle. If normal randomisation is used and no value is given, the default p_norm value is 0.95.
 #'
-#' @returns An sf object with the number of observations, geometry and minimal coordinate uncertainty per grid cell.
+#' @returns In case of `aggregate = TRUE` an sf object with the number of observations, geometry and minimal coordinate uncertainty per grid cell. In case of `aggregate = TRUE` an sf object with the geometry of the resampled observations in the uncertainty circle and the coordinate uncertainty in meters related to the original observation.
 #'
 #' @examples
 #'
@@ -204,7 +205,7 @@ grid_designation <- function(
   sf::st_agr(grid) <- "constant"
   intersect_grid <- sf::st_intersection(new_points, grid)
 
-  if (aggregate) {
+  if (isTRUE(aggregate)) {
     # Aggregate to get the cube
     occ_cube_df <- intersect_grid |>
       sf::st_drop_geometry() |>
@@ -219,9 +220,15 @@ grid_designation <- function(
       dplyr::full_join(grid, by = dplyr::join_by(!!id_col)) |>
       dplyr::mutate(n = as.integer(ifelse(is.na(n), 0, n))) %>%
       sf::st_as_sf(crs = sf::st_crs(grid))
-  } else {
+  } else if (isFALSE(aggregate)) {
     out_sf <- intersect_grid |>
       dplyr::select_at(c(id_col, "coordinateUncertaintyInMeters"))
+  } else {
+    cli::cli_abort(c(
+      "{.var aggregate} must be logical.",
+      "x" = paste("You've supplied an object of class
+                  {.cls {class(aggregate)}}."))
+    )
   }
 
   return(out_sf)
