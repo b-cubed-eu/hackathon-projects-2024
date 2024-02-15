@@ -52,11 +52,7 @@ grid_designation <- function(observations, grid, id_col = NULL, seed = NULL) {
   require(dplyr)
   require(sf)
 
-  # checks:
-  # is id_col a character string or NULL
-  # if present, does the id_col contain unique ids?
-  # is seed an integer or NULL
-  # crs of observations and grid needs to be the same
+  # Checks:
   # the input dataframes must be sf objects
   if (!"sf" %in% class(observations)) {
     cli::cli_abort(c(
@@ -70,6 +66,11 @@ grid_designation <- function(observations, grid, id_col = NULL, seed = NULL) {
       "x" = "You've supplied a {.cls {class(grid)}} object.")
       )
   }
+  # crs of observations and grid needs to be the same
+  if (sf::st_crs(observations) != sf::st_crs(grid)) {
+    cli::cli_abort("sf::st_crs(observations) == sf::st_crs(grid) is not TRUE")
+  }
+  # unique ids if id column is provided
   if (!is.null(id_col)) {
     if (!id_col %in% names(grid)) {
       cli::cli_warn(
@@ -85,7 +86,7 @@ grid_designation <- function(observations, grid, id_col = NULL, seed = NULL) {
       id_col <- NULL
     }
   }
-
+  # is seed an integer or NULL
 
   # Set seed if provided
   if (!is.null(seed)) set.seed(seed)
@@ -94,7 +95,7 @@ grid_designation <- function(observations, grid, id_col = NULL, seed = NULL) {
   if (!"coordinateUncertaintyInMeters" %in% names(observations)) {
     observations$coordinateUncertaintyInMeters <- 0
     cli::cli_warn(
-      paste("No column `coordinateUncertaintyInMeters` present!",
+      paste("No column {.var coordinateUncertaintyInMeters} present!",
             "Assuming no uncertainty around observations."))
   }
 
