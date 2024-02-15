@@ -7,10 +7,10 @@
 #' @param id_col The column name of the column with unique ids for each grid cell. If NULL (the default), a column `id` is created were the row numbers represent the unique ids.
 #' @param seed The seed for random number generation to make results reproducible. If NULL (the default), no seed is used.
 #' @param aggregate Logical. If TRUE (default), return data cube in aggregated form (grid with number of observations per grid cell). Otherwise return sampled points in uncertainty circle.
-#' @param randomisation Randomisation method used for sampling within uncertainty circle around each observation. By default "uniform" which means each point uncertainty circle has an equal probability to be selected. The other option is "normal" where a point is sampled from a bivariate Normal distribution with means equal to the observation point and the variance equal to (-`coordinateUncertaintyInMeters`^2) / (2 * log(1 - `p_norm`)) such that `p_norm`% of all possible samples from this Normal distribution fall within the uncertainty circle.
+#' @param randomisation Randomisation method used for sampling within uncertainty circle around each observation. By default "uniform" which means each point uncertainty circle has an equal probability to be selected. The other option is "normal" where a point is sampled from a bivariate Normal distribution with means equal to the observation point and the variance equal to (-`coordinateUncertaintyInMeters`^2) / (2 * log(1 - `p_norm`)) such that `p_norm` % of all possible samples from this Normal distribution fall within the uncertainty circle.
 #' @param p_norm Not applicable for uniform randomisation. The proportion of all possible samples from a a bivariate Normal distribution that fall within the uncertainty circle. If normal randomisation is used and no value is given, the default p_norm value is 0.95.
 #'
-#' @returns In case of `aggregate = TRUE` an sf object with the number of observations, geometry and minimal coordinate uncertainty per grid cell. In case of `aggregate = TRUE` an sf object with the geometry of the resampled observations in the uncertainty circle and the coordinate uncertainty in meters related to the original observation.
+#' @returns In case of `aggregate = TRUE` an sf object with the number of observations, geometry and minimal coordinate uncertainty per grid cell. In case of `aggregate = FALSE` an sf object with the geometry of the sampled observations in the uncertainty circle and the coordinate uncertainty in meters related to the original observation.
 #'
 #' @examples
 #'
