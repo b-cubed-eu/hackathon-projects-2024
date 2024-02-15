@@ -43,7 +43,8 @@
 #'   grid = grid_df,
 #'   seed = 123)
 
-grid_designation <- function(observations, grid, id_col = NULL, seed = NULL) {
+grid_designation <- function(observations, grid, id_col = NULL, seed = NULL,
+                             randomisation = "uniform", p_norm = NA) {
   # Load packages or install them if not available
   if (!requireNamespace("cli", quietly = TRUE)) install.packages("cli")
   if (!requireNamespace("dplyr", quietly = TRUE)) install.packages("dplyr")
@@ -100,7 +101,7 @@ grid_designation <- function(observations, grid, id_col = NULL, seed = NULL) {
     }
   }
 
-  # Get random point in uncertainty circle
+  # Set uncertainty to zero if column not present in data
   if (!"coordinateUncertaintyInMeters" %in% names(observations)) {
     observations$coordinateUncertaintyInMeters <- 0
     cli::cli_warn(
@@ -109,23 +110,56 @@ grid_designation <- function(observations, grid, id_col = NULL, seed = NULL) {
       )
   }
 
-  uncertainty_points <-
-    observations |>
-    dplyr::mutate(
-      random_angle = runif(nrow(observations), 0, 2 * pi),
-      random_r = sqrt(runif(nrow(observations), 0, 1)) *
-        coordinateUncertaintyInMeters)
+  # Get random point in uncertainty circle accoring to uniform or normal rules
+  if (randomisation == "uniform") {
+    # Get random angle and radius
+    uncertainty_points <-
+      observations |>
+      dplyr::mutate(
+        random_angle = runif(nrow(observations), 0, 2 * pi),
+        random_r = sqrt(runif(nrow(observations), 0, 1)) *
+          coordinateUncertaintyInMeters)
 
-  new_points <-
-    uncertainty_points |>
-    dplyr::mutate(
-      x_new = sf::st_coordinates(geometry)[, 1] +
-        random_r * cos(random_angle),
-      y_new = sf::st_coordinates(geometry)[, 2] +
-        random_r * sin(random_angle)) |>
-    sf::st_as_sf(coords = c("x_new", "y_new"), crs = sf::st_crs(observations))
+    # Calculate new point
+    new_points <-
+      uncertainty_points |>
+      dplyr::mutate(
+        x_new = sf::st_coordinates(geometry)[, 1] +
+          random_r * cos(random_angle),
+        y_new = sf::st_coordinates(geometry)[, 2] +
+          random_r * sin(random_angle)) |>
+      sf::st_as_sf(coords = c("x_new", "y_new"), crs = sf::st_crs(observations))
+  } else if (randomisation == "normal") {
+    # Set up probability of inclusion
+    if (is.na(p_norm)) {
+      p_norm <- 0.95
+    }
+    # Should be a single value between 0 and 1
+    if (length(p_norm) != 1 || p_norm <= 0 || p_norm >= 1) {
+      if (is.numeric(p_norm)) {
+        cli::cli_abort(c(
+          "{.var p_norm} must be a single value between 0 and 1.",
+          "x" = paste("You've supplied the value(s) {p_norm}."))
+          )
+      } else {
+        cli::cli_abort(c(
+          "{.var p_norm} must be a numeric vector of length 1 .",
+          "x" = paste("You've supplied a {.cls {class(p_norm)}} vector",
+                      "of length {length(p_norm)}."))
+          )
+      }
+    }
+
+    ...
+  } else {
+    cli::cli_abort(c(
+      '{.var randomisation} must be "uniform" or "normal".',
+      "x" = 'You provided "{randomisation}".')
+      )
+  }
 
   # We assign each occurrence to a grid cell
+  # Each grid cell needs a unique id
   if (is.null(id_col)) {
     id_col <- "id"
     grid[[id_col]] <- rownames(grid)
