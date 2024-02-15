@@ -323,19 +323,22 @@ We can superimpose a grid to create a data cube.
 
 ```{r}
 ggplot() +
-  geom_sf(data = grid_df, fill = alpha("cornflowerblue", 0.5), linewidth = 1) +
+  geom_sf(data = grid_df, linewidth = 1) +
   geom_sf(data = observations_sf, colour = "firebrick") +
   geom_sf(data = observations_buffered, fill = alpha("firebrick", 0.5)) +
   theme_void()
 ```
 
-The function `grid_designation()` designates observations to cells of a given grid to create an aggregated data cube based on a random point within the uncertainty circle around each observation (each possible point within the uncertainty circle has the same probability to be selected).
+The function `grid_designation()` designates observations to cells of a given grid to create an aggregated data cube based on a random point within the uncertainty circle around each observation.
 The argument `observations` is an sf object with POINT geometry and a `coordinateUncertaintyInMeters` column.
 The first argument `grid` is an sf object with POLYGON geometry (typically a grid) to which observations should be designated.
-Further we have the optional argument `id_col` which is the column name of the column with unique ids for each grid cell. If NULL (the default), a column `id` is created were the column numbers represent the unique ids.
-And the final argument `seed` which you can specify for random number generation to make results reproducible. If NULL (the default), no seed is used.
+Further we have the optional argument `id_col` which is the column name of the column with unique ids for each grid cell. If NULL (the default), a column `id` is created were the row numbers represent the unique ids.
+With the argument `seed` which you can specify for random number generation to make results reproducible. If NULL (the default), no seed is used.
 The function returns an sf object with the number of observations, geometry and minimal coordinate uncertainty per grid cell.
-Here we visualise the output where we see the number of observation per grid cell for this imaginary species in comparison to the original observations (with their uncertainty).
+
+Here, we visualise the output where we see the number of observation per grid cell for this imaginary species in comparison to the original observations (with their uncertainty).
+We also show the sampled point within the uncertainty circle (these can be obtained with the argument `aggregate = FALSE`).
+If the argument `randomisation = "uniform"` (= default), then each point uncertainty circle has an equal probability to be selected. The other option `randomisation = "normal"` where a point is sampled from a bivariate Normal distribution, but this option is outside the scope of this project.
 
 ```{r}
 # Source function to for observation to grid designation 
@@ -348,10 +351,20 @@ occurrence_cube_df <- grid_designation(
   id_col = NULL,
   seed = 123)
 
+# Also get sampled points to visualise
+sampled_points <- grid_designation(
+  observations = observations_sf,
+  grid = grid_df,
+  id_col = NULL,
+  seed = 123,
+  aggregate = FALSE)
+
 # Visualise output
 ggplot() +
-  geom_sf(data = occurrence_cube_df) +
+  geom_sf(data = occurrence_cube_df, linewidth = 1) +
   geom_sf_text(data = occurrence_cube_df, aes(label = n)) +
+  geom_sf(data = sampled_points, colour = "blue") +
+  geom_sf(data = observations_sf, colour = "firebrick") +
   geom_sf(data = observations_buffered, fill = alpha("firebrick", 0.5)) +
   theme_void()
 ```
