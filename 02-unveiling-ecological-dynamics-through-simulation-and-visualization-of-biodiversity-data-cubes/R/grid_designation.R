@@ -70,7 +70,21 @@ grid_designation <- function(observations, grid, id_col = NULL, seed = NULL) {
       "x" = "You've supplied a {.cls {class(grid)}} object.")
       )
   }
-
+  if (!is.null(id_col)) {
+    if (!id_col %in% names(grid)) {
+      cli::cli_warn(
+        paste('Column name "{id_col}" not present in provided grid!',
+              "Creating ids based on row numbers.")
+      )
+      id_col <- NULL
+    } else if (length(unique(grid[[id_col]])) != nrow(grid)) {
+      cli::cli_warn(
+        paste("Column `{id_col}` does not contain unique ids for grid",
+              "cells! Creating new ids based on row numbers.")
+      )
+      id_col <- NULL
+    }
+  }
 
 
   # Set seed if provided
