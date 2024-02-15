@@ -45,8 +45,14 @@
 #'   grid = grid_df,
 #'   seed = 123)
 
-grid_designation <- function(observations, grid, id_col = NULL, seed = NULL,
-                             randomisation = "uniform", p_norm = NA) {
+grid_designation <- function(
+    observations,
+    grid,
+    id_col = NULL,
+    seed = NULL,
+    aggregate = TRUE,
+    randomisation = "uniform",
+    p_norm = NA) {
   # Load packages or install them if not available
   if (!requireNamespace("cli", quietly = TRUE)) install.packages("cli")
   if (!requireNamespace("dplyr", quietly = TRUE)) install.packages("dplyr")
@@ -198,20 +204,25 @@ grid_designation <- function(observations, grid, id_col = NULL, seed = NULL,
   sf::st_agr(grid) <- "constant"
   intersect_grid <- sf::st_intersection(new_points, grid)
 
-  # Aggregate to get the cube
-  occ_cube_df <- intersect_grid |>
-    sf::st_drop_geometry() |>
-    dplyr::group_by_at(id_col) |>
-    dplyr::summarise(
-      n = dplyr::n(),
-      min_coord_uncertainty = min(coordinateUncertaintyInMeters)) |>
-    dplyr::ungroup()
+  if (aggregate) {
+    # Aggregate to get the cube
+    occ_cube_df <- intersect_grid |>
+      sf::st_drop_geometry() |>
+      dplyr::group_by_at(id_col) |>
+      dplyr::summarise(
+        n = dplyr::n(),
+        min_coord_uncertainty = min(coordinateUncertaintyInMeters)) |>
+      dplyr::ungroup()
 
-  # Add zeroes
-  out_sf <- occ_cube_df |>
-    dplyr::full_join(grid, by = dplyr::join_by(!!id_col)) |>
-    dplyr::mutate(n = as.integer(ifelse(is.na(n), 0, n))) %>%
-    sf::st_as_sf(crs = sf::st_crs(grid))
+    # Add zeroes
+    out_sf <- occ_cube_df |>
+      dplyr::full_join(grid, by = dplyr::join_by(!!id_col)) |>
+      dplyr::mutate(n = as.integer(ifelse(is.na(n), 0, n))) %>%
+      sf::st_as_sf(crs = sf::st_crs(grid))
+  } else {
+    out_sf <- intersect_grid |>
+      dplyr::select_at(c(id_col, "coordinateUncertaintyInMeters"))
+  }
 
   return(out_sf)
 }
