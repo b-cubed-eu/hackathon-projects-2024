@@ -411,3 +411,7 @@ Here are some ideas
 -  Visualise differences between occurrence process and detection process?
 -  After the grid designation process occurrences/abundances can be plotted in space over time.
 -  ...?
+
+# Useful references/packages
+
+...
