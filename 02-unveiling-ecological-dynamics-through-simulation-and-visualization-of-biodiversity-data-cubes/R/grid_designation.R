@@ -54,7 +54,7 @@ grid_designation <- function(
     seed = NA,
     aggregate = TRUE,
     randomisation = c("uniform", "normal"),
-    p_norm = NA) {
+    p_norm = ifelse(tolower(randomisation[1]) ==  "uniform", NA, 0.95)) {
   # Load packages or install them if not available
   # (not good practise for package!)
   if (!requireNamespace("cli", quietly = TRUE)) install.packages("cli")
@@ -154,20 +154,15 @@ grid_designation <- function(
     }
   }
   # randomisation arguments must match
-  randomisation <- tryCatch(
-    {
-      match.arg(tolower(randomisation[1]), c("uniform", "normal"))
-    }, error = function(e) {
-      cli::cli_abort(c(
-        "{.var randomisation} should be one of “uniform”, “normal”.",
+  randomisation <- tolower(randomisation)
+  if (!randomisation %in% c("uniform", "normal")) {
+    cli::cli_abort(c(
+        '{.var randomisation} should be one of "uniform", "normal".',
         "x" = "You've supplied {.val {randomisation[1]}}.")
       )
-    })
+  }
   # p_norm should be numeric between 0 and 1 in case of normal randomisation
   if (randomisation == "normal") {
-    if (is.na(p_norm)) {
-      p_norm <- 0.95
-    }
     if (!is.numeric(p_norm)) {
       cli::cli_abort(c(
         "{.var p_norm} must be a numeric vector of length 1.",
