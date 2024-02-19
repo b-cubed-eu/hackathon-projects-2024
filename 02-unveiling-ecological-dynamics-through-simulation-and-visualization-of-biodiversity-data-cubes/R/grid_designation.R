@@ -56,6 +56,7 @@ grid_designation <- function(
     randomisation = c("uniform", "normal"),
     p_norm = ifelse(randomisation[1] == "uniform", NA, 0.95)) {
   # Load packages or install them if not available
+  # not good practise for package!
   if (!requireNamespace("cli", quietly = TRUE)) install.packages("cli")
   if (!requireNamespace("dplyr", quietly = TRUE)) install.packages("dplyr")
   if (!requireNamespace("sf", quietly = TRUE)) install.packages("sf")
@@ -63,24 +64,57 @@ grid_designation <- function(
   require(dplyr)
   require(sf)
 
-  # Checks:
-  # the input dataframes must be sf objects
+  # Checks
+  # 1. check input lengths
+  if (length(id_col) != 1) {
+    cli::cli_abort(c(
+      "{.var id_col} must be a character vector of length 1.",
+      "x" = paste("You've supplied a {.cls {class(id_col)}} vector",
+                  "of length {length(id_col)}."))
+    )
+  }
+  if (length(seed) != 1) {
+    cli::cli_abort(c(
+      "{.var seed} must be a numeric vector of length 1.",
+      "x" = paste("You've supplied a {.cls {class(seed)}} vector",
+                  "of length {length(seed)}."))
+    )
+  }
+  if (length(aggregate) != 1) {
+    cli::cli_abort(c(
+      "{.var aggregate} must be a logical vector of length 1.",
+      "x" = paste("You've supplied a {.cls {class(aggregate)}} vector",
+                  "of length {length(aggregate)}."))
+    )
+  }
+  if (length(p_norm) != 1) {
+    cli::cli_abort(c(
+      "{.var p_norm} must be a vector of length 1.",
+      "x" = paste("You've supplied a vector",
+                  "of length {length(p_norm)}."))
+    )
+  }
+
+  # 2. check input classes
   if (!"sf" %in% class(observations)) {
     cli::cli_abort(c(
       "{.var observations} must be an sf object",
       "x" = "You've supplied a {.cls {class(observations)}} object.")
-      )
+    )
   }
   if (!"sf" %in% class(grid)) {
     cli::cli_abort(c(
       "{.var grid} must be an sf object.",
       "x" = "You've supplied a {.cls {class(grid)}} object.")
-      )
+    )
   }
-  # crs of observations and grid needs to be the same
+
+
+  # 3. other checks
   if (sf::st_crs(observations) != sf::st_crs(grid)) {
     cli::cli_abort("sf::st_crs(observations) == sf::st_crs(grid) is not TRUE")
   }
+
   # unique ids if id column is provided
   if (!is.null(id_col)) {
     if (!id_col %in% names(grid)) {
