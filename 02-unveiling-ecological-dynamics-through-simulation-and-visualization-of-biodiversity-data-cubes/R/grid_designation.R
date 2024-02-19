@@ -54,7 +54,7 @@ grid_designation <- function(
     seed = NA,
     aggregate = TRUE,
     randomisation = c("uniform", "normal"),
-    p_norm = ifelse(randomisation[1] == "uniform", NA, 0.95)) {
+    p_norm = NA) {
   # Load packages or install them if not available
   # not good practise for package!
   if (!requireNamespace("cli", quietly = TRUE)) install.packages("cli")
@@ -63,6 +63,9 @@ grid_designation <- function(
   require(cli)
   require(dplyr)
   require(sf)
+
+  # Default randomisation is first element in vector
+  randomisation <- randomisation[1]
 
   # Checks
   # 1. check input lengths
@@ -108,33 +111,84 @@ grid_designation <- function(
       "x" = "You've supplied a {.cls {class(grid)}} object.")
     )
   }
-
+  if (!is.character(id_col)) {
+    cli::cli_abort(c(
+      "{.var id_col} must be a character vector of length 1.",
+      "x" = paste("You've supplied a {.cls {class(id_col)}} vector",
+                  "of length {length(id_col)}."))
+    )
+  }
+  if (!is.logical(aggregate)) {
+    cli::cli_abort(c(
+      "{.var aggregate} must be a logical vector of length 1.",
+      "x" = paste("You've supplied a {.cls {class(aggregate)}} vector",
+                  "of length {length(aggregate)}."))
+    )
+  }
+  if (!is.character(randomisation)) {
+    cli::cli_abort(c(
+      "{.var randomisation} must be a character vector.",
+      "x" = "You've supplied a {.cls {class(randomisation)}} vector")
+    )
+  }
 
   # 3. other checks
+  # crs of sf objects
   if (sf::st_crs(observations) != sf::st_crs(grid)) {
     cli::cli_abort("sf::st_crs(observations) == sf::st_crs(grid) is not TRUE")
   }
-
   # unique ids if id column is provided
-  if (!is.null(id_col)) {
+  if (id_col != "row_names") {
     if (!id_col %in% names(grid)) {
       cli::cli_warn(
         paste('Column name "{id_col}" not present in provided grid!',
-              "Creating ids based on row numbers.")
+              "Creating ids based on row names")
         )
-      id_col <- NULL
+      id_col <- "row_names"
     } else if (length(unique(grid[[id_col]])) != nrow(grid)) {
       cli::cli_warn(
         paste("Column `{id_col}` does not contain unique ids for grid",
-              "cells! Creating new ids based on row numbers.")
+              "cells! Creating new ids based on row names")
         )
-      id_col <- NULL
+      id_col <- "row_names"
+    }
+  }
+  # randomisation arguments must match
+  randomisation <- tryCatch(
+    {
+      match.arg(tolower(randomisation[1]), c("uniform", "normal"))
+    }, error = function(e) {
+      cli::cli_abort(c(
+        "{.var randomisation} should be one of “uniform”, “normal”.",
+        "x" = "You've supplied {.val {randomisation[1]}}.")
+      )
+    })
+  # p_norm should be numeric between 0 and 1 in case of normal randomisation
+  if (randomisation == "normal") {
+    if (is.na(p_norm)) {
+      p_norm <- 0.95
+    }
+    if (!is.numeric(p_norm)) {
+      cli::cli_abort(c(
+        "{.var p_norm} must be a numeric vector of length 1.",
+        "x" = paste("You've supplied a {.cls {class(aggregate)}} vector",
+                    "of length {length(aggregate)}."))
+      )
+    }
+    if (p_norm <= 0 || p_norm >= 1) {
+      if (is.numeric(p_norm)) {
+        cli::cli_abort(c(
+          "{.var p_norm} must be a single value between 0 and 1.",
+          "x" = "You've supplied the value(s) {p_norm}.")
+        )
+      }
     }
   }
 
+
   # Set seed if provided
-  if (!is.null(seed)) {
-    if (is.numeric(seed) & length(seed) == 1) {
+  if (!is.na(seed)) {
+    if (is.numeric(seed)) {
       set.seed(seed)
     } else {
       cli::cli_abort(c(
@@ -174,28 +228,9 @@ grid_designation <- function(
           random_r * sin(random_angle)) |>
       sf::st_drop_geometry() |>
       sf::st_as_sf(coords = c("x_new", "y_new"), crs = sf::st_crs(observations))
-  } else if (randomisation == "normal") {
-    # Set up probability of inclusion
-    if (is.na(p_norm)) {
-      p_norm <- 0.95
-    }
-    # Should be a single value between 0 and 1
-    if (length(p_norm) != 1 || p_norm <= 0 || p_norm >= 1) {
-      if (is.numeric(p_norm)) {
-        cli::cli_abort(c(
-          "{.var p_norm} must be a single value between 0 and 1.",
-          "x" = paste("You've supplied the value(s) {p_norm}."))
-          )
-      } else {
-        cli::cli_abort(c(
-          "{.var p_norm} must be a numeric vector of length 1 .",
-          "x" = paste("You've supplied a {.cls {class(p_norm)}} vector",
-                      "of length {length(p_norm)}."))
-          )
-      }
-    }
-
+  } else {
     # Package to sample from bivariate Normal distribution
+    # not good practise for package!
     if (!requireNamespace("mnormt", quietly = TRUE)) install.packages("mnormt")
     require(mnormt)
 
@@ -223,16 +258,11 @@ grid_designation <- function(
       coordinateUncertaintyInMeters = observations$coordinateUncertaintyInMeters
       ) |>
       sf::st_as_sf(coords = c("x_new", "y_new"), crs = sf::st_crs(observations))
-  } else {
-    cli::cli_abort(c(
-      '{.var randomisation} must be "uniform" or "normal".',
-      "x" = 'You provided "{randomisation}".')
-      )
   }
 
   # We assign each occurrence to a grid cell
   # Each grid cell needs a unique id
-  if (is.null(id_col)) {
+  if (id_col == "row_names") {
     id_col <- "id"
     grid[[id_col]] <- rownames(grid)
   }
@@ -240,7 +270,8 @@ grid_designation <- function(
   sf::st_agr(grid) <- "constant"
   intersect_grid <- sf::st_intersection(new_points, grid)
 
-  if (isTRUE(aggregate)) {
+  # Return object
+  if (aggregate) {
     # Aggregate to get the cube
     occ_cube_df <- intersect_grid |>
       sf::st_drop_geometry() |>
@@ -255,15 +286,9 @@ grid_designation <- function(
       dplyr::full_join(grid, by = dplyr::join_by(!!id_col)) |>
       dplyr::mutate(n = as.integer(ifelse(is.na(n), 0, n))) %>%
       sf::st_as_sf(crs = sf::st_crs(grid))
-  } else if (isFALSE(aggregate)) {
+  } else {
     out_sf <- intersect_grid |>
       dplyr::select_at(c(id_col, "coordinateUncertaintyInMeters"))
-  } else {
-    cli::cli_abort(c(
-      "{.var aggregate} must be logical.",
-      "x" = paste("You've supplied an object of class
-                  {.cls {class(aggregate)}}."))
-    )
   }
 
   return(out_sf)
