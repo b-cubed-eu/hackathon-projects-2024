@@ -56,7 +56,7 @@ grid_designation <- function(
     randomisation = c("uniform", "normal"),
     p_norm = NA) {
   # Load packages or install them if not available
-  # not good practise for package!
+  # (not good practise for package!)
   if (!requireNamespace("cli", quietly = TRUE)) install.packages("cli")
   if (!requireNamespace("dplyr", quietly = TRUE)) install.packages("dplyr")
   if (!requireNamespace("sf", quietly = TRUE)) install.packages("sf")
@@ -67,7 +67,7 @@ grid_designation <- function(
   # Default randomisation is first element in vector
   randomisation <- randomisation[1]
 
-  # Checks
+  ### Start checks
   # 1. check input lengths
   if (length(id_col) != 1) {
     cli::cli_abort(c(
@@ -184,7 +184,7 @@ grid_designation <- function(
       }
     }
   }
-
+  ### End checks
 
   # Set seed if provided
   if (!is.na(seed)) {
@@ -230,7 +230,7 @@ grid_designation <- function(
       sf::st_as_sf(coords = c("x_new", "y_new"), crs = sf::st_crs(observations))
   } else {
     # Package to sample from bivariate Normal distribution
-    # not good practise for package!
+    # (not good practise for package!)
     if (!requireNamespace("mnormt", quietly = TRUE)) install.packages("mnormt")
     require(mnormt)
 
@@ -287,6 +287,7 @@ grid_designation <- function(
       dplyr::mutate(n = as.integer(ifelse(is.na(n), 0, n))) %>%
       sf::st_as_sf(crs = sf::st_crs(grid))
   } else {
+    # Return new points
     out_sf <- intersect_grid |>
       dplyr::select_at(c(id_col, "coordinateUncertaintyInMeters"))
   }
