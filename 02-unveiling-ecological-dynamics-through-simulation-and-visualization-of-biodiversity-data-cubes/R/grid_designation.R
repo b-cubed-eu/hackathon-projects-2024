@@ -50,11 +50,11 @@
 grid_designation <- function(
     observations,
     grid,
-    id_col = NULL,
-    seed = NULL,
+    id_col = "row_names",
+    seed = NA,
     aggregate = TRUE,
-    randomisation = "uniform",
-    p_norm = NA) {
+    randomisation = c("uniform", "normal"),
+    p_norm = ifelse(randomisation[1] == "uniform", NA, 0.95)) {
   # Load packages or install them if not available
   if (!requireNamespace("cli", quietly = TRUE)) install.packages("cli")
   if (!requireNamespace("dplyr", quietly = TRUE)) install.packages("dplyr")
