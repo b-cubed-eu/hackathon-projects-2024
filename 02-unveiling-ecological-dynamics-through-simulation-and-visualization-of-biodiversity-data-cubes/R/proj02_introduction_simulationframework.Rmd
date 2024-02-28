@@ -190,7 +190,7 @@ To simulate the detection of individuals in a certain spatial region, we need in
 -  Detection probability can be different for each *species*.
 -  Values are a probability between 0 (never detected) to 1 (always detected)
 -  Implementation
-   - Species: Probability between 0 and 1 for each species. `runif(n, min = 0, max = 1)` for uniform distribution between 0 and 1 or the Beta distribution to get a skewed distribution between -1 and 1.
+   - Species: Probability between 0 and 1 for each species. `runif(n, min = 0, max = 1)` for uniform distribution between 0 and 1 or the Beta distribution to get a skewed distribution between -1 and  (`runif(n, min = 0, max = 1)` is the same as `rbeta(n, shape1 = 1, shape2 = 1)`)
    - See `detection.probability` argument in the `sampleOccurrences()` function of the **virtualspecies** package
 
 ```{r detection-beta}
@@ -199,8 +199,8 @@ n <- 100
 x_values <- seq(0, 1, length.out = n)
 
 # Parameters Beta distribution
-alpha <- c(0.5, 2, 2, 2, 7, 8)
-beta <- c(0.5, 1, 2, 7, 2, 8)
+alpha <- c(1, 2, 2, 2, 7, 8)
+beta <- c(1, 1, 2, 7, 2, 8)
 
 # Calculate densities in dataframe
 detection_df <- tibble(
