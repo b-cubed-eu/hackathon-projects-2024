@@ -35,9 +35,10 @@ Ecological systems are inherently variable, and a single dataset does not captur
 # Technical setup and requirements
 ## Software installation
 
-To join this project there are three software requirements: R, RStudio and Git.
+To join this project there are two software requirements: R and Git.
 R is a programming language and environment specifically designed for statistical computing and data analysis.
-RStudio is an integrated development environment (IDE) for R that makes working with R more accessible and efficient.
+A recommended integrated development environment (IDE) for R is RStudio.
+RStudio makes working with R more accessible and efficient.
 Git is a distributed version control system used for tracking changes in source code during software development.
 You can download R and RStudio from [here](https://posit.co/download/rstudio-desktop/) and Git from [here](https://git-scm.com/downloads).
 
@@ -45,7 +46,8 @@ You can download R and RStudio from [here](https://posit.co/download/rstudio-des
 
 If you do not have a GitHub account, you can sign up [for a new GitHub account](https://docs.github.com/en/get-started/start-your-journey/creating-an-account-on-github). 
 If this is not yet done, make sure to [connect RStudio to Git and GitHub](https://happygitwithr.com/rstudio-git-github).
-Clone the hackathon GitHub repository [hackathon-projects-2024](https://github.com/b-cubed-eu/hackathon-projects-2024) via RStudio.
+Clone the hackathon GitHub repository [hackathon-projects-2024](https://github.com/b-cubed-eu/hackathon-projects-2024).
+Checkout branch [hackathon-project-02](https://github.com/b-cubed-eu/hackathon-projects-2024/tree/hackathon-project-02).
 
 # Monte Carlo simulation framework for biodiversity data cubes
 
