@@ -36,22 +36,22 @@ Ecological systems are inherently variable, and a single dataset does not captur
 ## Software installation
 
 To join this project there are two software requirements: R and Git.
-R is a programming language and environment specifically designed for statistical computing and data analysis.
-A recommended integrated development environment (IDE) for R is RStudio.
-RStudio makes working with R more accessible and efficient.
-Git is a distributed version control system used for tracking changes in source code during software development.
+
+1.  **R** is a programming language and environment specifically designed for statistical computing and data analysis. A recommended integrated development environment (IDE) for R is RStudio. RStudio makes working with R more accessible and efficient.
+2. **Git** is a distributed version control system used for tracking changes in source code during software development.
+
 You can download R and RStudio from [here](https://posit.co/download/rstudio-desktop/) and Git from [here](https://git-scm.com/downloads).
 
 ## Setting up version control for efficient collaboration
 
-If you do not have a GitHub account, you can sign up [for a new GitHub account](https://docs.github.com/en/get-started/start-your-journey/creating-an-account-on-github). 
-If this is not yet done, make sure to [connect RStudio to Git and GitHub](https://happygitwithr.com/rstudio-git-github).
-Clone the hackathon GitHub repository [hackathon-projects-2024](https://github.com/b-cubed-eu/hackathon-projects-2024).
-Checkout branch [hackathon-project-02](https://github.com/b-cubed-eu/hackathon-projects-2024/tree/hackathon-project-02).
+-  If you do not have a GitHub account, you can sign up [for a new GitHub account](https://docs.github.com/en/get-started/start-your-journey/creating-an-account-on-github). 
+-  If this is not yet done, make sure to [connect RStudio to Git and GitHub](https://happygitwithr.com/rstudio-git-github).
+-  Clone the hackathon GitHub repository [hackathon-projects-2024](https://github.com/b-cubed-eu/hackathon-projects-2024).
+-  Checkout branch [hackathon-project-02](https://github.com/b-cubed-eu/hackathon-projects-2024/tree/hackathon-project-02).
 
 # Monte Carlo simulation framework for biodiversity data cubes
 
-In this project, we will aim to create a simulation framework for biodiversity data cubes based on [Monte Carlo methods](https://en.wikipedia.org/wiki/Monte_Carlo_method). 
+In this project, we will aim to create a simulation framework for biodiversity data cubes based on [Monte Carlo methods](https://en.wikipedia.org/wiki/Monte_Carlo_method) (= based on repeated random sampling).
 
 We need to simulate three different processes related to different variables that depend on *species*, *observation*, *space* and *time*.
 
@@ -366,7 +366,8 @@ ggplot() +
 
 # Coding
 
-Here are some ideas
+A more extensive overview of the architecture is provided in `proj02_framework_architecture.Rmd`.
+Here are some general ideas
 
 -  A function for each process that can contain multiple helper functions
 -  Each function simulates for 1 species, the user can easily simulate multiple species using loops, the `apply()` family functions, ...
@@ -409,4 +410,18 @@ Here are some ideas
 
 # Useful references/packages {#references}
 
-...
+-  [virtualspecies](https://borea.mnhn.fr/sites/default/files/pdfs/ECOGRAPHY_E01388.pdf)
+   - An R package to generate virtual species distributions and sample occurrences
+   -  `sampleOccurrences()` might be a useful function to look into
+-  [SimSurvey](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7213729/)
+   - An R package for comparing the design and analysis of surveys by simulating spatially-correlated populations
+-  [gstat](https://r-spatial.github.io/gstat/)
+   - An R package for spatial and spatio-temporal geostatistical modelling, prediction and simulation
+   - See also [this blog post](http://santiago.begueria.es/2010/10/generating-spatially-correlated-random-fields-with-r/)
+- [spatstat](https://github.com/spatstat/spatstat)
+  - A family of R packages for analysing spatial point pattern data (and other kinds of spatial data)
+  - Extensive capabilities for exploratory analysis, statistical modelling, simulation and statistical inference
+  - See [the website](www.spatstat.org) or read [the book](https://book.spatstat.org/)
+- [sdmTMB](https://pbs-assess.github.io/sdmTMB/)
+  - An R package that fits spatial and spatiotemporal GLMMs (Generalized Linear Mixed Effects Models) using Template Model Builder (TMB), R-INLA, and Gaussian Markov random fields
+  - [Here](https://pbs-assess.github.io/sdmTMB/#simulating-data) is an example to simulate data from scratch
