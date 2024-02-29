@@ -92,13 +92,15 @@ include_graphics(here("media", "visual_proposal.png"), error = FALSE)
 
 To simulate the occurrence of species in a certain spatial region, we need information on the rarity as well as a measure for spatial clustering.
 
+> The major difficulty will probably be to include spatio-temporal autocorrelation. For this, we can look at other packages (e.g. listed in Section \@ref(references))
+
 ### Rarity
 
 -  Rarity can be different for each *species* and can change over *time*.
 -  Values related to abundance/density
 -  Implementation
    - Species: abundance/density for each species. Density can be converted to abundance based on the area of the polygon. Abundances can be generated from the Poisson distribution (`rpois()`)
-   - Time: the order of random walk or a function (e.g. sinus, linear, exponential …)
+   - Time: the order of random walk or a function (e.g. linear, exponential, sinus …)
 
 ```{r abundance-sim}
 # Set seed for reproducibility
@@ -110,13 +112,6 @@ n_time_points <- 50
 # Time vector
 time <- 1:n_time_points
 
-# Sinusoidal trend parameters
-amplitude <- 10
-frequency <- 0.1
-
-# Generate sinusoidal trend
-sinusoidal_trend <- amplitude * sin(2 * pi * frequency * time)
-
 # Poisson distribution parameters
 lambda <- 100 - 1*time
 
@@ -125,8 +120,8 @@ n_sim <- 100
 list_abundances <- vector("list", length = n_sim)
 
 for (i in seq_len(n_sim)) {
-  # Simulate abundances with Poisson distribution and sinusoidal trend
-  abundances <- rpois(n_time_points, lambda + sinusoidal_trend)
+  # Simulate abundances with Poisson distribution
+  abundances <- rpois(n_time_points, lambda)
   
   # Create a data frame
   list_abundances[[i]] <- data.frame(time = time, abundance = abundances,
@@ -139,7 +134,7 @@ ggplot(data_abundances, aes(x = time, y = abundance, colour = factor(sim))) +
   geom_line() +
   labs(x = "Time", y = "Species abundance",
        title = paste(n_sim, "simulated abundances with linear decreasing",
-                     "sinusoidal trend over time")) +
+                     "trend over time")) +
   scale_y_continuous(limits = c(0, NA)) +
   theme_minimal() +
   theme(legend.position = "")
@@ -412,6 +407,6 @@ Here are some ideas
 -  After the grid designation process occurrences/abundances can be plotted in space over time.
 -  ...?
 
-# Useful references/packages
+# Useful references/packages {#references}
 
 ...
