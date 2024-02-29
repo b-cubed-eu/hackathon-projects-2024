@@ -1,0 +1,31 @@
+---
+title: "Project 2: Unveiling Ecological Dynamics Through Simulation and Visualization of Biodiversity Data Cubes"
+subtitle: "Framework architecture"
+author: "Ward Langeraert"
+date: "`r Sys.Date()`"
+output:
+  bookdown::html_document2:
+    code_folding: hide
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+# Setup
+library(knitr)
+library(here)
+opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE)
+opts_knit$set(root.dir = here())
+
+# Packages
+library(tidyverse)
+library(sf)
+```
+
+# Introduction
