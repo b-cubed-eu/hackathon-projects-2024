@@ -157,8 +157,8 @@ n <- 100
 x_values <- seq(0, 1, length.out = n)
 
 # Parameters Beta distribution
-alpha <- c(0.5, 2, 2, 2, 7, 8)
-beta <- c(0.5, 1, 2, 7, 2, 8)
+alpha <- c(1, 2, 2, 2, 7, 8)
+beta <- c(1, 1, 2, 7, 2, 8)
 
 # Calculate Beta densities in dataframe
 clustering_df <- tibble(
