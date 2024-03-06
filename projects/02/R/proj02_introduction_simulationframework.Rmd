@@ -364,39 +364,6 @@ ggplot() +
   theme_void()
 ```
 
-# Coding
-
-A more extensive overview of the architecture is provided in `proj02_framework_architecture.Rmd`.
-Here are some general ideas
-
--  A function for each process that can contain multiple helper functions
--  Each function simulates for 1 species, the user can easily simulate multiple species using loops, the `apply()` family functions, ...
--  As input we need a polygon to set the spatial extent or we could create a polygon based on X and Y coordinates given by the user with **sf**?
--  ...?
-
-```{r coding-tab, echo=FALSE}
-tibble(
-  process = c(
-    rep("occurrence", 2),
-    rep("detection", 3)
-  ),
-  variable = c(
-    "rarity",
-    "spatial clustering",
-    "detection probability",
-    "sampling effort",
-    "spatial uncertainty"
-  ),
-  default = c(
-    "rpois(1, rgamma(1, ?, ?)), where we only simulate for a single time point by default",
-    "runif(n, min = -1, max = 1)",
-    "1, all occurrences are detected",
-    "NULL, default no difference in sampling effort",
-    "25 meters?"
-  )) %>%
-  kable()
-```
-
 # Visualisation
 
 At the end of the hackathon it would be nice to have some visual support (and not only lines of code) for the project.
