@@ -1,0 +1,38 @@
+---
+title: "Project 2: Unveiling Ecological Dynamics Through Simulation and Visualization of Biodiversity Data Cubes"
+subtitle: "Unit testing"
+author: "Ward Langeraert"
+date: "`r Sys.Date()`"
+output:
+  bookdown::html_document2:
+    code_folding: hide
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+# Setup
+library(knitr)
+library(here)
+opts_chunk$set(
+  echo = TRUE,
+  message = TRUE,
+  warning = TRUE)
+opts_knit$set(root.dir = here())
+
+# Packages
+library(testthat)
+```
+
+# Run tests
+
+This markdown can be used to run unit tests.
+We check for any failed tests.
+
+```{r}
+tryCatch(test_dir(here("tests", "testthat"), reporter = "Check"),
+         error = function(e) cli::cli_warn(e))
+```
