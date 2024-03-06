@@ -1,0 +1,327 @@
+---
+title: "Project 2: Unveiling Ecological Dynamics Through Simulation and Visualization of Biodiversity Data Cubes"
+subtitle: "Framework architecture"
+author: "Ward Langeraert"
+date: "`r Sys.Date()`"
+output:
+  bookdown::html_document2:
+    code_folding: hide
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+bibliography: references.bib
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+# Setup
+library(knitr)
+library(here)
+opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE)
+opts_knit$set(root.dir = here())
+```
+
+# Introduction
+
+In this document, we describe the proposed architecture for the code in this project.
+The main ideas behind the simulation framework are given in `01_introduction_simulationframework.Rmd`.
+
+We want to simulate three different processes related to different variables that depend on *species*, *observation*, *space* and *time*.
+
+1.  occurrence process
+2.  detection process
+3.  grid designation process
+
+In this project, we will focus on the occurrence and detection processes. For grid designation, R code is already available.
+
+```{r processes-tab, echo=FALSE}
+data.frame(
+  process = c(
+    rep("occurrence", 2),
+    rep("detection", 3)
+  ),
+  variable = c(
+    "rarity",
+    "spatial clustering",
+    "detection probability",
+    "sampling effort",
+    "spatial uncertainty"
+  ),
+  dependency = c(
+    "species, time",
+    "species",
+    "species",
+    "space, time",
+    "observation"
+  )) |>
+  kable()
+```
+
+These three processes can be described in three main functions respectively `simulate_occurrences()`, `sample_observations()` and `grid_designation()`.
+These can depend on multiple helper functions for example per variable mentioned above or for specific subprocesses (e.g. spatiotemporal autocorrelation).
+
+# Occurrence process
+
+## Description
+
+The function `simulate_occurrences()` simulates occurrences of a species within a given spatial and/or temporal extend.
+
+```         
+simulate_occurrences(
+    polygon,
+    initial_average_abundance = 50,
+    spatial_autocorr = c("random", "clustered", "regular"),
+    n_time_points = 10,
+    temporal_autocorr = ifelse(time_points ==  1, NA, "random_walk"),
+    spatiotemporal_autocorr = NA,
+    seed = NA) {
+ ...
+}
+```
+
+## Function arguments
+
+**polygon**:
+
+An sf object with POLYGON geometry indicating the spatial extend to simulate occurrences.
+
+**initial_average_abundance**:
+
+A positive integer value indicating the average number of occurrences to be simulated within the extend of `polygon` at time point 1. This value will be used as mean of a Poisson distribution ($\lambda$ parameter).
+
+**spatial_autocorr**:
+
+`"random"`, `"clustered"`, `"regular"` or a numeric value between -1 and 1 representing Moran's I. `"random"` corresponds to 0, `"clustered"` to 0.9 and `"regular"` to -0.9.
+
+**n_time_points**:
+
+A positive integer value indicating the number of time points to simulate.
+
+**temporal_autocorr**:
+
+`NA`, `"random_walk"` or a function which generates a trend in abundance over time. Only used if `time_points > 1`. When there are multiple time points and `"random_walk"` is selected, the following function is used:
+
+```
+simulate_random_walk <- function(
+    initial_average_abundance = initial_average_abundance,
+    n_time_points = n_time_points,
+    sd_step = 1,
+    seed = seed) {
+  # Set seed if provided
+  if (!is.na(seed)) {
+    if (is.numeric(seed)) {
+      set.seed(seed)
+    } else {
+      cli::cli_abort(c(
+        "{.var seed} must be an numeric vector of length 1.",
+        "x" = paste("You've supplied a {.cls {class(seed)}} vector",
+                    "of length {length(seed)}."))
+        )
+    }
+  }
+  
+  # Initialize an empty vector to store average abundance values
+  lambdas <- numeric(n_time_points)
+  
+  # Set the initial abundance
+  lambdas[1] <- initial_average_abundance
+  
+  # Generate random steps and accumulate them
+  for (i in 2:n_time_points) {
+    step <- rnorm(1, mean = 0, sd = sd_step)
+    lambdas[i] <- lambdas[i - 1] + step
+  }
+  
+  # Identify where the lambda values become 0 or lower
+  zero_or_lower_index <- which(lambdas <= 0)
+  
+  # If any lambda becomes 0 or lower, set all subsequent lambdas to 0
+  if (length(zero_or_lower_index) > 0) {
+    zero_or_lower_indices <- zero_or_lower_index[1]:n_time_points
+    lambdas[zero_or_lower_indices] <- 0
+  }
+  
+  # Return samples from Poisson
+  return(rpois(n_time_points, lambdas))
+}
+```
+
+The user is also free to specify its own function that depends on `initial_average_abundance` and `n_time_points`.
+
+For example in case of a linearly decreasing trend over time:
+
+```
+my_own_linear_function <- function(
+    initial_average_abundance = initial_average_abundance,
+    n_time_points = n_time_points,
+    coef = -1) {
+  # Calculate new average abundances over time
+  time <- seq_len(n_time_points) - 1
+  lambdas <- initial_average_abundance + (coef * time)
+  
+  # Identify where the lambda values become 0 or lower
+  zero_or_lower_index <- which(lambdas <= 0)
+  
+  # If any lambda becomes 0 or lower, set all subsequent lambdas to 0
+  if (length(zero_or_lower_index) > 0) {
+    zero_or_lower_indices <- zero_or_lower_index[1]:n_time_points
+    lambdas[zero_or_lower_indices] <- 0
+  }
+  
+  # Return samples from Poisson
+  return(rpois(n_time_points, lambdas))
+}
+```
+
+**spatiotemporal_autocorr**:
+
+A numeric value between indicating the strength of spatiotemporal autocorrelation.
+
+**seed**:
+
+A positive numeric value. The seed for random number generation to make results reproducible. If `NA` (the default), no seed is used.
+
+## Returns
+
+An sf object with POINT geometry containing the locations of the simulated occurrences and a `time_point` column containing the time point associated with each occurrence.
+
+# Detection process
+
+## Description
+
+The function `sample_observations()` samples observations from occurrences based on detection probability and sampling bias.
+
+```         
+sample_observations(
+    occurrences,
+    detection_probability = 1,
+    sampling_bias = c("no_bias", "polygon", "manual"),
+    bias_area = NA,
+    bias_strength = NA,
+    bias_weights = NA,
+    coordinate_uncertainty_meters = 25,
+    seed = NA) {
+ ...
+}
+```
+
+The function `add_coordinate_uncertainty()` is a helper function for `sample_observations()` to add a `coordinateUncertaintyInMeters` column that should also be openly available in case users simulate observations based on virtual species distributions. This can for example be accomplished using the **virtualspecies** package [@leroy2016virtualspecies]:
+
+1.  Species-environment relationship
+    -   `generateSpFromFun()`
+    -   `generateSpFromPCA()`
+2.  Conversion to presence-absence
+    -   `convertToPA()`
+    -   introduce distribution bias: `limitDispersal()`
+3.  Sample occurrences
+    -   `sampleOccurrences()`
+4.  Convert to sf object with POINT geometry
+    -   `sf::st_as_sf()`
+
+```         
+add_coordinate_uncertainty(
+    occurrences,
+    coordinate_uncertainty_meters = 25) {
+ ...
+}
+```
+
+## Function arguments
+
+**occurrences**:
+
+An sf object with POINT geometry.
+
+**detection_probability**:
+
+A numeric value between 0 and 1, corresponding to the probability of detection of the species.
+
+**sampling_bias**:
+
+`"no_bias"`, `"polygon"` or `"manual"`. The method used to generate a sampling bias.
+
+-   `"polygon"`: bias the sampling in a polygon. Provide your polygon to `bias_area`. Provide bias strength to `bias_strength`.
+-   `"manual"`: bias the sampling manually via a raster. Provide your raster layer in which each cell contains the probability to be sampled to `bias_weights`.
+
+**bias_area**:
+
+`NA` or an sf object with POLYGON geometry. Only used if `sampling_bias = "polygon"`. The area in which the sampling will be biased.
+
+**bias_strength**:
+
+`NA` or a positive numeric value. Only used if `sampling_bias = "polygon"`. The strength of the bias to be applied in the biased area (as a multiplier). Above 1, area will be oversampled. Below 1, area will be undersampled. For example, a value of 50 will result in 50 times more samples within the `bias_area` than outside. Conversely, a value of 0.5 will result in half less samples within the `bias_area` than outside.
+
+**bias_weights**:
+
+`NA` or a raster layer (sf object with POLYGON geometry, or SpatRaster object). Only used if `sampling_bias = "manual"`. The raster of bias weights to be applied to the sampling of occurrences. Higher weights mean a higher probability of sampling. Weights can be numeric values between 0 and 1 or positive integers that will be rescaled to values between 0 and 1.
+
+**coordinate_uncertainty_meters**:
+
+A positive numeric value or vector with length `nrow(occurrences)` describing the uncertainty in meters around each observation.
+
+**seed**:
+
+A positive numeric value. The seed for random number generation to make results reproducible. If `NA` (the default), no seed is used.
+
+## Returns
+
+An sf object with POINT geometry containing the locations of the sampled observations, a `detection_probability` column containing the detection probability for each observation (will be the same for all), a `bias_weight` column containing the sampling probability based on sampling bias, a `sampling_probability` column containing the combined sampling probability from detection probability and sampling bias, and a `coordinateUncertaintyInMeters` column containing the coordinate uncertainty for each observation.
+
+# Grid designation process
+
+## Description
+
+The function `grid_designation()` designates observations to cells of a given grid to create an aggregated data cube.
+
+```         
+grid_designation(
+    observations,
+    grid,
+    id_col = "row_names",
+    seed = NA,
+    aggregate = TRUE,
+    randomisation = c("uniform", "normal"),
+    p_norm = ifelse(tolower(randomisation[1]) ==  "uniform", NA, 0.95)) {
+ ...
+}
+```
+
+## Function arguments
+
+**observations**:
+
+An sf object with POINT geometry and a `coordinateUncertaintyInMeters` column. If this column is not present, the function will assume no (zero meters) uncertainty around the observation points.
+
+**grid**:
+
+An sf object with POLYGON geometry (usually a grid) to which observations should be designated.
+
+**id_col**:
+
+The column name of the column with unique ids for each grid cell. If `"row_names"` (the default), a new column `id` is created were the row names represent the unique ids.
+
+**seed**:
+
+A positive numeric value. The seed for random number generation to make results reproducible. If `NA` (the default), no seed is used.
+
+**aggregate**:
+
+Logical. If `TRUE` (default), return data cube in aggregated form (grid with number of observations per grid cell). Otherwise return sampled points in uncertainty circle.
+
+**randomisation**:
+
+`"uniform"` or `"normal"`. Randomisation method used for sampling within uncertainty circle around each observation. By default `"uniform"` which means each point uncertainty circle has an equal probability to be selected. The other option is `"normal"` where a point is sampled from a bivariate Normal distribution with means equal to the observation point and the variance equal to (-`coordinateUncertaintyInMeters`\^2) / (2 \* log(1 - `p_norm`)) such that `p_norm` % of all possible samples from this Normal distribution fall within the uncertainty circle.
+
+**p_norm**:
+
+A numeric value between 0 and 1. Only used if `randomisation = "normal"`. The proportion of all possible samples from a a bivariate Normal distribution that fall within the uncertainty circle. If normal randomisation is used and no value is given, the default `p_norm` value is 0.95.
+
+## Returns
+
+In case of `aggregate = TRUE`, an sf object with POLYGON geometry containing the locations of the grid cells, an `n` column with the number of observations per grid cell, and a `min_coord_uncertainty` column containing the minimal coordinate uncertainty per grid cell. In case of `aggregate = FALSE`, an sf object with POINT geometry containing the locations of the sampled observations within the uncertainty circle, and a `coordinateUncertaintyInMeters` column containing the coordinate uncertainty for each observation.
+
+# References
