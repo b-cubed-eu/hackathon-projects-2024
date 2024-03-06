@@ -23,19 +23,50 @@ opts_chunk$set(
   message = FALSE,
   warning = FALSE)
 opts_knit$set(root.dir = here())
-
-# Packages
-library(tidyverse)
-library(sf)
 ```
 
 # Introduction
 
-# Project architecture
+In this document, we describe the proposed architecture for the code in this project.
+The main ideas behind the simulation framework are given in `01_introduction_simulationframework.Rmd`.
 
-## Occurrence process
+We want to simulate three different processes related to different variables that depend on *species*, *observation*, *space* and *time*.
 
-### Description
+1.  occurrence process
+2.  detection process
+3.  grid designation process
+
+In this project, we will focus on the occurrence and detection processes. For grid designation, R code is already available.
+
+```{r processes-tab, echo=FALSE}
+data.frame(
+  process = c(
+    rep("occurrence", 2),
+    rep("detection", 3)
+  ),
+  variable = c(
+    "rarity",
+    "spatial clustering",
+    "detection probability",
+    "sampling effort",
+    "spatial uncertainty"
+  ),
+  dependency = c(
+    "species, time",
+    "species",
+    "species",
+    "space, time",
+    "observation"
+  )) |>
+  kable()
+```
+
+These three processes can be described in three main functions respectively `simulate_occurrences()`, `sample_observations()` and `grid_designation()`.
+These can depend on multiple helper functions for example per variable mentioned above or for specific subprocesses (e.g. spatiotemporal autocorrelation).
+
+# Occurrence process
+
+## Description
 
 The function `simulate_occurrences()` simulates occurrences of a species within a given spatial and/or temporal extend.
 
@@ -52,7 +83,7 @@ simulate_occurrences(
 }
 ```
 
-### Function arguments
+## Function arguments
 
 **polygon**:
 
@@ -154,18 +185,18 @@ A numeric value between indicating the strength of spatiotemporal autocorrelatio
 
 A positive numeric value. The seed for random number generation to make results reproducible. If `NA` (the default), no seed is used.
 
-### Returns
+## Returns
 
 An sf object with POINT geometry containing the locations of the simulated occurrences and a `time_point` column containing the time point associated with each occurrence.
 
-## Detection process
+# Detection process
 
-### Description
+## Description
 
-The function `simulate_observations()` samples observations from occurrences based on detection probability and sampling bias.
+The function `sample_observations()` samples observations from occurrences based on detection probability and sampling bias.
 
 ```         
-simulate_observations(
+sample_observations(
     occurrences,
     detection_probability = 1,
     sampling_bias = c("no_bias", "polygon", "manual"),
@@ -178,7 +209,7 @@ simulate_observations(
 }
 ```
 
-The function `add_coordinate_uncertainty()` is a helper function for `simulate_observations()` to add a `coordinateUncertaintyInMeters` column that should also be openly available in case users simulate observations based on virtual species distributions. This can for example be accomplished using the **virtualspecies** package [@leroy2016virtualspecies]:
+The function `add_coordinate_uncertainty()` is a helper function for `sample_observations()` to add a `coordinateUncertaintyInMeters` column that should also be openly available in case users simulate observations based on virtual species distributions. This can for example be accomplished using the **virtualspecies** package [@leroy2016virtualspecies]:
 
 1.  Species-environment relationship
     -   `generateSpFromFun()`
@@ -199,7 +230,7 @@ add_coordinate_uncertainty(
 }
 ```
 
-### Function arguments
+## Function arguments
 
 **occurrences**:
 
@@ -236,13 +267,13 @@ A positive numeric value or vector with length `nrow(occurrences)` describing th
 
 A positive numeric value. The seed for random number generation to make results reproducible. If `NA` (the default), no seed is used.
 
-### Returns
+## Returns
 
 An sf object with POINT geometry containing the locations of the sampled observations, a `detection_probability` column containing the detection probability for each observation (will be the same for all), a `bias_weight` column containing the sampling probability based on sampling bias, a `sampling_probability` column containing the combined sampling probability from detection probability and sampling bias, and a `coordinateUncertaintyInMeters` column containing the coordinate uncertainty for each observation.
 
-## Grid designation process
+# Grid designation process
 
-### Description
+## Description
 
 The function `grid_designation()` designates observations to cells of a given grid to create an aggregated data cube.
 
@@ -259,7 +290,7 @@ grid_designation(
 }
 ```
 
-### Function arguments
+## Function arguments
 
 **observations**:
 
@@ -289,7 +320,7 @@ Logical. If `TRUE` (default), return data cube in aggregated form (grid with num
 
 A numeric value between 0 and 1. Only used if `randomisation = "normal"`. The proportion of all possible samples from a a bivariate Normal distribution that fall within the uncertainty circle. If normal randomisation is used and no value is given, the default `p_norm` value is 0.95.
 
-### Returns
+## Returns
 
 In case of `aggregate = TRUE`, an sf object with POLYGON geometry containing the locations of the grid cells, an `n` column with the number of observations per grid cell, and a `min_coord_uncertainty` column containing the minimal coordinate uncertainty per grid cell. In case of `aggregate = FALSE`, an sf object with POINT geometry containing the locations of the sampled observations within the uncertainty circle, and a `coordinateUncertaintyInMeters` column containing the coordinate uncertainty for each observation.
 
