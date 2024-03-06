@@ -37,14 +37,16 @@ library(sf)
 
 ### Description
 
+The function `simulate_occurrences()` simulates occurrences of a species within a given spatial and/or temporal extend.
+
 ```         
 simulate_occurrences(
     polygon,
-    density = rpois(1, rgamma(1, 50, 1)),
-    spatial_clustering = c("random", "clustered", "regular"),
-    time_points = 1,
+    initial_average_abundance = 50,
+    spatial_autocorr = c("random", "clustered", "regular"),
+    n_time_points = 10,
     temporal_autocorr = ifelse(time_points ==  1, NA, "random_walk"),
-    spatial_autocorr = NA,
+    spatiotemporal_autocorr = NA,
     seed = NA) {
  ...
 }
@@ -52,7 +54,109 @@ simulate_occurrences(
 
 ### Function arguments
 
+**polygon**:
+
+An sf object with POLYGON geometry indicating the spatial extend to simulate occurrences.
+
+**initial_average_abundance**:
+
+A positive integer value indicating the average number of occurrences to be simulated within the extend of `polygon` at time point 1. This value will be used as mean of a Poisson distribution ($\lambda$ parameter).
+
+**spatial_autocorr**:
+
+`"random"`, `"clustered"`, `"regular"` or a numeric value between -1 and 1 representing Moran's I. `"random"` corresponds to 0, `"clustered"` to 0.9 and `"regular"` to -0.9.
+
+**n_time_points**:
+
+A positive integer value indicating the number of time points to simulate.
+
+**temporal_autocorr**:
+
+`NA`, `"random_walk"` or a function which generates a trend in abundance over time. Only used if `time_points > 1`. When there are multiple time points and `"random_walk"` is selected, the following function is used:
+
+```
+simulate_random_walk <- function(
+    initial_average_abundance = initial_average_abundance,
+    n_time_points = n_time_points,
+    sd_step = 1,
+    seed = seed) {
+  # Set seed if provided
+  if (!is.na(seed)) {
+    if (is.numeric(seed)) {
+      set.seed(seed)
+    } else {
+      cli::cli_abort(c(
+        "{.var seed} must be an numeric vector of length 1.",
+        "x" = paste("You've supplied a {.cls {class(seed)}} vector",
+                    "of length {length(seed)}."))
+        )
+    }
+  }
+  
+  # Initialize an empty vector to store average abundance values
+  lambdas <- numeric(n_time_points)
+  
+  # Set the initial abundance
+  lambdas[1] <- initial_average_abundance
+  
+  # Generate random steps and accumulate them
+  for (i in 2:n_time_points) {
+    step <- rnorm(1, mean = 0, sd = sd_step)
+    lambdas[i] <- lambdas[i - 1] + step
+  }
+  
+  # Identify where the lambda values become 0 or lower
+  zero_or_lower_index <- which(lambdas <= 0)
+  
+  # If any lambda becomes 0 or lower, set all subsequent lambdas to 0
+  if (length(zero_or_lower_index) > 0) {
+    zero_or_lower_indices <- zero_or_lower_index[1]:n_time_points
+    lambdas[zero_or_lower_indices] <- 0
+  }
+  
+  # Return samples from Poisson
+  return(rpois(n_time_points, lambdas))
+}
+```
+
+The user is also free to specify its own function that depends on `initial_average_abundance` and `n_time_points`.
+
+For example in case of a linearly decreasing trend over time:
+
+```
+my_own_linear_function <- function(
+    initial_average_abundance = initial_average_abundance,
+    n_time_points = n_time_points,
+    coef = -1) {
+  # Calculate new average abundances over time
+  time <- seq_len(n_time_points) - 1
+  lambdas <- initial_average_abundance + (coef * time)
+  
+  # Identify where the lambda values become 0 or lower
+  zero_or_lower_index <- which(lambdas <= 0)
+  
+  # If any lambda becomes 0 or lower, set all subsequent lambdas to 0
+  if (length(zero_or_lower_index) > 0) {
+    zero_or_lower_indices <- zero_or_lower_index[1]:n_time_points
+    lambdas[zero_or_lower_indices] <- 0
+  }
+  
+  # Return samples from Poisson
+  return(rpois(n_time_points, lambdas))
+}
+```
+
+**spatiotemporal_autocorr**:
+
+A numeric value between indicating the strength of spatiotemporal autocorrelation.
+
+**seed**:
+
+A positive numeric value. The seed for random number generation to make results reproducible. If `NA` (the default), no seed is used.
+
 ### Returns
+
+An sf object with POINT geometry containing the locations of the simulated occurrences and a `time_point` column containing the time point associated with each occurrence.
 
 ## Detection process
 
@@ -134,7 +238,7 @@ A positive numeric value. The seed for random number generation to make results 
 
 ### Returns
 
-An sf object with POINT geometry containing the sampled observations, a `detection_probability` column, a `bias_weight` and a `coordinateUncertaintyInMeters` column.
+An sf object with POINT geometry containing the locations of the sampled observations, a `detection_probability` column containing the detection probability for each observation (will be the same for all), a `bias_weight` column containing the sampling probability based on sampling bias, a `sampling_probability` column containing the combined sampling probability from detection probability and sampling bias, and a `coordinateUncertaintyInMeters` column containing the coordinate uncertainty for each observation.
 
 ## Grid designation process
 
@@ -187,6 +291,6 @@ A numeric value between 0 and 1. Only used if `randomisation = "normal"`. The pr
 
 ### Returns
 
-In case of `aggregate = TRUE`, an sf object with the number of observations, POLYGON geometry and minimal coordinate uncertainty per grid cell. In case of `aggregate = FALSE`, an sf object with POINT geometry of the sampled observations in the uncertainty circle and the coordinate uncertainty in meters related to the original observation.
+In case of `aggregate = TRUE`, an sf object with POLYGON geometry containing the locations of the grid cells, an `n` column with the number of observations per grid cell, and a `min_coord_uncertainty` column containing the minimal coordinate uncertainty per grid cell. In case of `aggregate = FALSE`, an sf object with POINT geometry containing the locations of the sampled observations within the uncertainty circle, and a `coordinateUncertaintyInMeters` column containing the coordinate uncertainty for each observation.
 
 # References
