@@ -9,6 +9,7 @@ output:
     toc: true
     toc_float: true
     toc_collapsed: true
+bibliography: references.bib
 editor_options: 
   chunk_output_type: console
 ---
@@ -73,7 +74,7 @@ simulate_observations(
 }
 ```
 
-The function `add_coordinate_uncertainty()` is a helper function for `simulate_observations()` to add a `coordinateUncertaintyInMeters` column that should also be openly available in case users simulate observations based on virtual species distributions. This can for example be accomplished using the **virtualspecies** package ():
+The function `add_coordinate_uncertainty()` is a helper function for `simulate_observations()` to add a `coordinateUncertaintyInMeters` column that should also be openly available in case users simulate observations based on virtual species distributions. This can for example be accomplished using the **virtualspecies** package [@leroy2016virtualspecies]:
 
 1.  Species-environment relationship
     -   `generateSpFromFun()`
@@ -96,24 +97,40 @@ add_coordinate_uncertainty(
 
 ### Function arguments
 
-**occurrences**:\\ An sf object with POINT geometry.
+**occurrences**:
 
-**detection_probability**:\\ A numeric value between 0 and 1, corresponding to the probability of detection of the species.
+An sf object with POINT geometry.
 
-**sampling_bias**:\\ `"no_bias"`, `"polygon"` or `"manual"`. The method used to generate a sampling bias.
+**detection_probability**:
+
+A numeric value between 0 and 1, corresponding to the probability of detection of the species.
+
+**sampling_bias**:
+
+`"no_bias"`, `"polygon"` or `"manual"`. The method used to generate a sampling bias.
 
 -   `"polygon"`: bias the sampling in a polygon. Provide your polygon to `bias_area`. Provide bias strength to `bias_strength`.
 -   `"manual"`: bias the sampling manually via a raster. Provide your raster layer in which each cell contains the probability to be sampled to `bias_weights`.
 
-**bias_area**:\\ `NA` or an sf object with POLYGON geometry. Only used if `sampling_bias = "polygon"`. The area in which the sampling will be biased.
+**bias_area**:
 
-**bias_strength**:\\ `NA` or a positive numeric value. Only used if `sampling_bias = "polygon"`. The strength of the bias to be applied in the biased area (as a multiplier). Above 1, area will be oversampled. Below 1, area will be undersampled. For example, a value of 50 will result in 50 times more samples within the `bias_area` than outside. Conversely, a value of 0.5 will result in half less samples within the `bias_area` than outside.
+`NA` or an sf object with POLYGON geometry. Only used if `sampling_bias = "polygon"`. The area in which the sampling will be biased.
 
-**bias_weights**:\\ `NA` or a raster layer (sf object with POLYGON geometry, or SpatRaster object). Only used if `sampling_bias = "manual"`. The raster of bias weights to be applied to the sampling of occurrences. Higher weights mean a higher probability of sampling. Weights can be numeric values between 0 and 1 or positive integers that will be rescaled to values between 0 and 1.
+**bias_strength**:
 
-**coordinate_uncertainty_meters**\\
+`NA` or a positive numeric value. Only used if `sampling_bias = "polygon"`. The strength of the bias to be applied in the biased area (as a multiplier). Above 1, area will be oversampled. Below 1, area will be undersampled. For example, a value of 50 will result in 50 times more samples within the `bias_area` than outside. Conversely, a value of 0.5 will result in half less samples within the `bias_area` than outside.
 
-**seed**:\\ The seed for random number generation to make results reproducible. If `NA` (the default), no seed is used.
+**bias_weights**:
+
+`NA` or a raster layer (sf object with POLYGON geometry, or SpatRaster object). Only used if `sampling_bias = "manual"`. The raster of bias weights to be applied to the sampling of occurrences. Higher weights mean a higher probability of sampling. Weights can be numeric values between 0 and 1 or positive integers that will be rescaled to values between 0 and 1.
+
+**coordinate_uncertainty_meters**:
+
+A positive numeric value or vector with length `nrow(occurrences)` describing the uncertainty in meters around each observation.
+
+**seed**:
+
+A positive numeric value. The seed for random number generation to make results reproducible. If `NA` (the default), no seed is used.
 
 ### Returns
 
@@ -140,20 +157,36 @@ grid_designation(
 
 ### Function arguments
 
-**observations**:\\ An sf object with POINT geometry and a `coordinateUncertaintyInMeters` column. If this column is not present, the function will assume no (zero meters) uncertainty around the observation points.
+**observations**:
 
-**grid**:\\ An sf object with POLYGON geometry (usually a grid) to which observations should be designated.
+An sf object with POINT geometry and a `coordinateUncertaintyInMeters` column. If this column is not present, the function will assume no (zero meters) uncertainty around the observation points.
 
-**id_col**:\\ The column name of the column with unique ids for each grid cell. If `"row_names"` (the default), a new column `id` is created were the row names represent the unique ids.
+**grid**:
 
-**seed**:\\ The seed for random number generation to make results reproducible. If `NA` (the default), no seed is used.
+An sf object with POLYGON geometry (usually a grid) to which observations should be designated.
 
-**aggregate**:\\ Logical. If `TRUE` (default), return data cube in aggregated form (grid with number of observations per grid cell). Otherwise return sampled points in uncertainty circle.
+**id_col**:
 
-**randomisation**:\\ `"uniform"` or `"normal"`. Randomisation method used for sampling within uncertainty circle around each observation. By default `"uniform"` which means each point uncertainty circle has an equal probability to be selected. The other option is `"normal"` where a point is sampled from a bivariate Normal distribution with means equal to the observation point and the variance equal to (-`coordinateUncertaintyInMeters`\^2) / (2 \* log(1 - `p_norm`)) such that `p_norm` % of all possible samples from this Normal distribution fall within the uncertainty circle.
+The column name of the column with unique ids for each grid cell. If `"row_names"` (the default), a new column `id` is created were the row names represent the unique ids.
 
-**p_norm**:\\ A numeric value between 0 and 1. Only used if `randomisation = "normal"`. The proportion of all possible samples from a a bivariate Normal distribution that fall within the uncertainty circle. If normal randomisation is used and no value is given, the default `p_norm` value is 0.95.
+**seed**:
+
+A positive numeric value. The seed for random number generation to make results reproducible. If `NA` (the default), no seed is used.
+
+**aggregate**:
+
+Logical. If `TRUE` (default), return data cube in aggregated form (grid with number of observations per grid cell). Otherwise return sampled points in uncertainty circle.
+
+**randomisation**:
+
+`"uniform"` or `"normal"`. Randomisation method used for sampling within uncertainty circle around each observation. By default `"uniform"` which means each point uncertainty circle has an equal probability to be selected. The other option is `"normal"` where a point is sampled from a bivariate Normal distribution with means equal to the observation point and the variance equal to (-`coordinateUncertaintyInMeters`\^2) / (2 \* log(1 - `p_norm`)) such that `p_norm` % of all possible samples from this Normal distribution fall within the uncertainty circle.
+
+**p_norm**:
+
+A numeric value between 0 and 1. Only used if `randomisation = "normal"`. The proportion of all possible samples from a a bivariate Normal distribution that fall within the uncertainty circle. If normal randomisation is used and no value is given, the default `p_norm` value is 0.95.
 
 ### Returns
 
 In case of `aggregate = TRUE`, an sf object with the number of observations, POLYGON geometry and minimal coordinate uncertainty per grid cell. In case of `aggregate = FALSE`, an sf object with POINT geometry of the sampled observations in the uncertainty circle and the coordinate uncertainty in meters related to the original observation.
+
+# References
