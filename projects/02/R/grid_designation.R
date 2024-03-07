@@ -279,7 +279,7 @@ grid_designation <- function(
     # Add zeroes
     out_sf <- occ_cube_df |>
       dplyr::full_join(grid, by = dplyr::join_by(!!id_col)) |>
-      dplyr::mutate(n = as.integer(ifelse(is.na(n), 0, n))) %>%
+      dplyr::mutate(n = as.integer(ifelse(is.na(n), 0, n))) |>
       sf::st_as_sf(crs = sf::st_crs(grid))
   } else {
     # Return new points
