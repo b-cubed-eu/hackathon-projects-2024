@@ -30,6 +30,7 @@ library(testthat)
 # Run tests
 
 This markdown can be used to run unit tests.
+Recommendations for code testing can be found in [this chapter](https://docs.b-cubed.eu/dev-guide/r/#testing) of the B-Cubed documentation website.
 We check for any failed tests.
 
 ```{r}

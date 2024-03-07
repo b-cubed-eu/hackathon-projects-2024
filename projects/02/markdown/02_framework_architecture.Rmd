@@ -64,6 +64,10 @@ data.frame(
 These three processes can be described in three main functions respectively `simulate_occurrences()`, `sample_observations()` and `grid_designation()`.
 These can depend on multiple helper functions for example per variable mentioned above or for specific subprocesses (e.g. spatiotemporal autocorrelation).
 
+# Coding style and software requirements
+
+Please consult the [B-Cubed documentation website](https://docs.b-cubed.eu/dev-guide/) for recommendations regarding coding style, good practice and software requirements.
+
 # Occurrence process
 
 ## Description
