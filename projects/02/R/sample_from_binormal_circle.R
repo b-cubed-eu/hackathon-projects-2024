@@ -27,7 +27,7 @@
 #'   ) |>
 #'   st_as_sf(coords = c("long", "lat"), crs = 3035)
 #'
-#' # Sample points within uncertainty circles according to Normal rules
+#' # Sample points within uncertainty circles according to normal rules
 #' sample_from_binormal_circle(
 #'   observations = observations_sf,
 #'   p_norm = 0.95,
@@ -53,6 +53,15 @@ sample_from_binormal_circle <- function(
                     "of length {length(seed)}."))
       )
     }
+  }
+
+  # Set uncertainty to zero if column not present in data
+  if (!"coordinateUncertaintyInMeters" %in% names(observations)) {
+    observations$coordinateUncertaintyInMeters <- 0
+    cli::cli_warn(
+      paste("No column {.var coordinateUncertaintyInMeters} present!",
+            "Assuming no uncertainty around observations.")
+    )
   }
 
   # Calculate 2-dimensional means and variance-covariance matrices
