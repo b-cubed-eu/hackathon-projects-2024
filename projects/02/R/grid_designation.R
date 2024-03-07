@@ -153,8 +153,10 @@ grid_designation <- function(
 
   # Get random point in uncertainty circle according to uniform or normal rules
   if (randomisation == "uniform") {
+    source(here("R", "sample_from_uniform_circle.R"))
     new_points <- sample_from_uniform_circle(observations, seed)
   } else {
+    source(here("R", "sample_from_normal_circle.R"))
     new_points <- sample_from_binormal_circle(observations, p_norm, seed)
   }
 
