@@ -1,6 +1,4 @@
 # Source functions
-source(here("R", "grid_designation.R"))
-source(here("R", "sample_from_uniform_circle.R"))
 source(here("R", "sample_from_normal_circle.R"))
 
 # Unit tests
