@@ -2,7 +2,7 @@
 #'
 #' The function samples occurrences of a species within the uncertainty circle around each observation assuming a bivariate Normal distribution with means equal to the observation point and the variance equal to (-`coordinateUncertaintyInMeters`^2) / (2 * log(1 - `p_norm`)) such that `p_norm` % of all possible samples from this Normal distribution fall within the uncertainty circle.
 #'
-#' @param observations An sf object with POINT geometry and a `coordinateUncertaintyInMeters` column.
+#' @param observations An sf object with POINT geometry and a `coordinateUncertaintyInMeters` column. If this column is not present, the function will assume no (zero meters) uncertainty around the observation points.
 #' @param p_norm A numeric value between 0 and 1. The proportion of all possible samples from a a bivariate Normal distribution that fall within the uncertainty circle. If no value is given, the default `p_norm` value is 0.95.
 #' @param seed A positive numeric value. The seed for random number generation to make results reproducible. If `NA` (the default), no seed is used.
 #'
@@ -41,6 +41,50 @@ sample_from_binormal_circle <- function(
   # (not good practise for package!)
   if (!requireNamespace("mnormt", quietly = TRUE)) install.packages("mnormt")
   require(mnormt)
+
+  ### Start checks
+  # 1. check input lengths
+  if (length(seed) != 1) {
+    cli::cli_abort(c(
+      "{.var seed} must be a numeric vector of length 1.",
+      "x" = paste("You've supplied a {.cls {class(seed)}} vector",
+                  "of length {length(seed)}."))
+    )
+  }
+  if (length(p_norm) != 1) {
+    cli::cli_abort(c(
+      "{.var p_norm} must be a vector of length 1.",
+      "x" = paste("You've supplied a vector",
+                  "of length {length(p_norm)}."))
+    )
+  }
+
+  # 2. check input classes
+  if (!"sf" %in% class(observations)) {
+    cli::cli_abort(c(
+      "{.var observations} must be an sf object",
+      "x" = "You've supplied a {.cls {class(observations)}} object.")
+    )
+  }
+
+  # 3. other checks
+  # p_norm should be numeric between 0 and 1
+  if (!is.numeric(p_norm)) {
+    cli::cli_abort(c(
+      "{.var p_norm} must be a numeric vector of length 1.",
+      "x" = paste("You've supplied a {.cls {class(aggregate)}} vector",
+                  "of length {length(aggregate)}."))
+    )
+  }
+  if (p_norm <= 0 || p_norm >= 1) {
+    if (is.numeric(p_norm)) {
+      cli::cli_abort(c(
+        "{.var p_norm} must be a single value between 0 and 1.",
+        "x" = "You've supplied the value(s) {p_norm}.")
+      )
+    }
+  }
+  ### End checks
 
   # Set seed if provided
   if (!is.na(seed)) {

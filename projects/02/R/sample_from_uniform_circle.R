@@ -2,7 +2,7 @@
 #'
 #' The function samples occurrences of a species within the uncertainty circle around each observation assuming a Uniform distribution.
 #'
-#' @param observations An sf object with POINT geometry and a `coordinateUncertaintyInMeters` column.
+#' @param observations An sf object with POINT geometry and a `coordinateUncertaintyInMeters` column. If this column is not present, the function will assume no (zero meters) uncertainty around the observation points.
 #' @param seed A positive numeric value. The seed for random number generation to make results reproducible. If `NA` (the default), no seed is used.
 #'
 #' @returns An sf object with POINT geometry containing the locations of the sampled occurrences and a `coordinateUncertaintyInMeters` column containing the coordinate uncertainty for each observation.
@@ -34,6 +34,25 @@
 sample_from_uniform_circle <- function(
     observations,
     seed = NA) {
+  ### Start checks
+  # 1. check input lengths
+  if (length(seed) != 1) {
+    cli::cli_abort(c(
+      "{.var seed} must be a numeric vector of length 1.",
+      "x" = paste("You've supplied a {.cls {class(seed)}} vector",
+                  "of length {length(seed)}."))
+    )
+  }
+
+  # 2. check input classes
+  if (!"sf" %in% class(observations)) {
+    cli::cli_abort(c(
+      "{.var observations} must be an sf object",
+      "x" = "You've supplied a {.cls {class(observations)}} object.")
+    )
+  }
+  ### End checks
+
   # Set seed if provided
   if (!is.na(seed)) {
     if (is.numeric(seed)) {

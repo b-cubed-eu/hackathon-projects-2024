@@ -78,25 +78,11 @@ grid_designation <- function(
                   "of length {length(id_col)}."))
     )
   }
-  if (length(seed) != 1) {
-    cli::cli_abort(c(
-      "{.var seed} must be a numeric vector of length 1.",
-      "x" = paste("You've supplied a {.cls {class(seed)}} vector",
-                  "of length {length(seed)}."))
-    )
-  }
   if (length(aggregate) != 1) {
     cli::cli_abort(c(
       "{.var aggregate} must be a logical vector of length 1.",
       "x" = paste("You've supplied a {.cls {class(aggregate)}} vector",
                   "of length {length(aggregate)}."))
-    )
-  }
-  if (length(p_norm) != 1) {
-    cli::cli_abort(c(
-      "{.var p_norm} must be a vector of length 1.",
-      "x" = paste("You've supplied a vector",
-                  "of length {length(p_norm)}."))
     )
   }
 
@@ -163,44 +149,13 @@ grid_designation <- function(
         "x" = "You've supplied {.val {randomisation[1]}}.")
       )
   }
-  # p_norm should be numeric between 0 and 1 in case of normal randomisation
-  if (randomisation == "normal") {
-    if (!is.numeric(p_norm)) {
-      cli::cli_abort(c(
-        "{.var p_norm} must be a numeric vector of length 1.",
-        "x" = paste("You've supplied a {.cls {class(aggregate)}} vector",
-                    "of length {length(aggregate)}."))
-      )
-    }
-    if (p_norm <= 0 || p_norm >= 1) {
-      if (is.numeric(p_norm)) {
-        cli::cli_abort(c(
-          "{.var p_norm} must be a single value between 0 and 1.",
-          "x" = "You've supplied the value(s) {p_norm}.")
-        )
-      }
-    }
-  }
   ### End checks
-
-  # Set seed if provided
-  if (!is.na(seed)) {
-    if (is.numeric(seed)) {
-      set.seed(seed)
-    } else {
-      cli::cli_abort(c(
-        "{.var seed} must be an numeric vector of length 1.",
-        "x" = paste("You've supplied a {.cls {class(seed)}} vector",
-                    "of length {length(seed)}."))
-        )
-    }
-  }
 
   # Get random point in uncertainty circle according to uniform or normal rules
   if (randomisation == "uniform") {
-    new_points <- sample_from_uniform_circle(observations)
+    new_points <- sample_from_uniform_circle(observations, seed)
   } else {
-    new_points <- sample_from_binormal_circle(observations, p_norm)
+    new_points <- sample_from_binormal_circle(observations, p_norm, seed)
   }
 
   # We assign each occurrence to a grid cell
