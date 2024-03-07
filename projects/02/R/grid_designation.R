@@ -16,6 +16,8 @@
 #'
 #' library(sf)
 #'
+#' set.seed(123)
+#'
 #' # Create four random points
 #' n_points <- 4
 #' xlim <- c(3841000, 3842000)
@@ -224,35 +226,7 @@ grid_designation <- function(
       sf::st_drop_geometry() |>
       sf::st_as_sf(coords = c("x_new", "y_new"), crs = sf::st_crs(observations))
   } else {
-    # Package to sample from bivariate Normal distribution
-    # (not good practise for package!)
-    if (!requireNamespace("mnormt", quietly = TRUE)) install.packages("mnormt")
-    require(mnormt)
-
-    # Calculate 2-dimensional means and variance-covariance matrices
-    means <- sf::st_coordinates(observations$geometry)
-    variances <- (-observations$coordinateUncertaintyInMeters^2) /
-      (2 * log(1 - p_norm))
-    varcovariances <- lapply(variances, function(var) {
-      matrix(c(var, -1, -1, var), nrow = 2)
-      })
-
-    # Sample new points from bivariate Normal distribution
-    new_points_list <- vector("list", length = nrow(observations))
-    for (i in seq_len(nrow(observations))) {
-      new_points_list[[i]] <- rmnorm(
-        1, mean = means[i,], varcov = varcovariances[[i]]
-        )
-    }
-    new_points_df <- do.call(rbind.data.frame, new_points_list)
-    names(new_points_df) <- c("x_new", "y_new")
-
-    # Create geometry and add uncertainties
-    new_points <- cbind(
-      new_points_df,
-      coordinateUncertaintyInMeters = observations$coordinateUncertaintyInMeters
-      ) |>
-      sf::st_as_sf(coords = c("x_new", "y_new"), crs = sf::st_crs(observations))
+    new_points <- sample_from_binormal_circle(observations, p_norm)
   }
 
   # We assign each occurrence to a grid cell
