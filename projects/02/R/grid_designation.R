@@ -196,35 +196,9 @@ grid_designation <- function(
     }
   }
 
-  # Set uncertainty to zero if column not present in data
-  if (!"coordinateUncertaintyInMeters" %in% names(observations)) {
-    observations$coordinateUncertaintyInMeters <- 0
-    cli::cli_warn(
-      paste("No column {.var coordinateUncertaintyInMeters} present!",
-            "Assuming no uncertainty around observations.")
-      )
-  }
-
   # Get random point in uncertainty circle according to uniform or normal rules
   if (randomisation == "uniform") {
-    # Get random angle and radius
-    uncertainty_points <-
-      observations |>
-      dplyr::mutate(
-        random_angle = runif(nrow(observations), 0, 2 * pi),
-        random_r = sqrt(runif(nrow(observations), 0, 1)) *
-          coordinateUncertaintyInMeters)
-
-    # Calculate new point
-    new_points <-
-      uncertainty_points |>
-      dplyr::mutate(
-        x_new = sf::st_coordinates(geometry)[, 1] +
-          random_r * cos(random_angle),
-        y_new = sf::st_coordinates(geometry)[, 2] +
-          random_r * sin(random_angle)) |>
-      sf::st_drop_geometry() |>
-      sf::st_as_sf(coords = c("x_new", "y_new"), crs = sf::st_crs(observations))
+    new_points <- sample_from_uniform_circle(observations)
   } else {
     new_points <- sample_from_binormal_circle(observations, p_norm)
   }
