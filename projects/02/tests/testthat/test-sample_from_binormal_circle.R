@@ -17,7 +17,7 @@ ylim <- c(3110000, 3112000)
 observations_sf1 <- data.frame(
   lat = runif(n_points, ylim[1], ylim[2]),
   long = runif(n_points, xlim[1], xlim[2])
-) %>%
+  ) %>%
   st_as_sf(coords = c("long", "lat"), crs = 3035)
 
 ## dataset with coordinateUncertaintyInMeters
