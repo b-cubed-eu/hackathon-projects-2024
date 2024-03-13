@@ -40,8 +40,7 @@ grid_df1 <- st_make_grid(
   square = TRUE,
   cellsize = c(200, 200)
   ) %>%
-  st_as_sf() %>%
-  rename(geometry = x)
+  st_sf()
 
 grid_df2 <- grid_df1 %>%
   mutate(id = seq_len(nrow(grid_df1)))

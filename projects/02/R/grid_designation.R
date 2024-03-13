@@ -41,8 +41,7 @@
 #'   square = TRUE,
 #'   cellsize = c(200, 200)
 #'   ) %>%
-#'   st_as_sf() %>%
-#'   rename(geometry = x)
+#'   st_sf()
 #'
 #' # Create occurrence cube
 #' grid_designation(
