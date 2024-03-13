@@ -43,6 +43,9 @@ grid_df1 <- st_make_grid(
   st_as_sf() %>%
   rename(geometry = x)
 
+grid_df2 <- grid_df1 %>%
+  mutate(id = seq_len(nrow(grid_df1)))
+
 ## grid without geometry
 grid_df3 <- grid_df1 %>%
   st_drop_geometry()
@@ -205,4 +208,23 @@ test_that("correct column names present", {
       id_col = "identifier",
       aggregate = FALSE)),
     c("identifier", "coordinateUncertaintyInMeters", "geometry"))
+})
+
+test_that("no minimal coordinate uncertainty for empty grid cells", {
+  suppressWarnings({
+    expect_equal(sum(
+                   grid_designation(observations_sf1,
+                                    grid = grid_df1)$n == 0),
+                 sum(is.na(
+                   grid_designation(observations_sf1,
+                                    grid = grid_df1)$min_coord_uncertainty))
+                 )
+  })
+  expect_equal(sum(
+    grid_designation(observations_sf2,
+                     grid = grid_df1)$n == 0),
+    sum(is.na(
+      grid_designation(observations_sf2,
+                       grid = grid_df1)$min_coord_uncertainty))
+  )
 })
