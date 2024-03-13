@@ -26,6 +26,10 @@ coordinate_uncertainty <- rgamma(n_points, shape = 5, rate = 0.1)
 observations_sf2 <- observations_sf1 %>%
   mutate(coordinateUncertaintyInMeters = coordinate_uncertainty)
 
+## dataset without geometry
+observations_sf3 <- observations_sf2 %>%
+  st_drop_geometry()
+
 # Add buffer uncertainty in meters around points
 observations_buffered <- observations_sf2 %>%
   st_buffer(observations_sf2$coordinateUncertaintyInMeters)
@@ -50,6 +54,17 @@ grid_df3 <- st_make_grid(
 # Unit tests
 ## expect errors
 test_that("arguments are of the right class", {
+  # observations are sf dataframe
+  expect_error(grid_designation(observations_sf3, grid_df1),
+               regexp = "`observations` must be an sf object",
+               fixed = TRUE)
+  expect_error(grid_designation(observations = 2, grid_df1),
+               regexp = "`observations` must be an sf object",
+               fixed = TRUE)
+  expect_error(grid_designation(observations = "string", grid_df1),
+               regexp = "`observations` must be an sf object",
+               fixed = TRUE)
+
   # grid is sf dataframe
   expect_error(grid_designation(observations_sf2, grid_df3),
               regexp = "`grid` must be an sf object",
@@ -61,18 +76,38 @@ test_that("arguments are of the right class", {
               regexp = "`grid` must be an sf object",
               fixed = TRUE)
 
-  # seed is numeric
+  # id_col is string
+  expect_error(grid_designation(observations_sf2, grid = grid_df1,
+                                id_col = 3),
+               regexp = "`id_col` must be a character vector of length 1.",
+               fixed = TRUE)
+
+  # randomisation is string
+  expect_error(grid_designation(observations_sf2, grid = grid_df1,
+                                randomisation = 3),
+               regexp = "`randomisation` must be a character vector.",
+               fixed = TRUE)
+
+  # aggregate is logical
+  expect_error(grid_designation(observations_sf2, grid = grid_df1,
+                                aggregate = "TRUE"),
+               regexp = "`aggregate` must be a logical vector of length 1.",
+               fixed = TRUE)
 })
 
 test_that("arguments are of the right length", {
-  # seed has length 1
-  expect_error(grid_designation(observations_sf1, seed = 1:3),
-              regexp = "`seed` must be a numeric vector of length 1.",
-              fixed = TRUE)
-  expect_error(grid_designation(observations_sf2, seed = 1:3),
-              regexp = "`seed` must be a numeric vector of length 1.",
-              fixed = TRUE)
- })
+  # id_col has length 1
+  expect_error(grid_designation(observations_sf2, grid = grid_df1,
+                                id_col = c("col1", "col2")),
+               regexp = "`id_col` must be a character vector of length 1.",
+               fixed = TRUE)
+
+  # aggregate has length 1
+  expect_error(grid_designation(observations_sf2, grid = grid_df1,
+                                aggregate = rep(TRUE, 3)),
+               regexp = "`aggregate` must be a logical vector of length 1.",
+               fixed = TRUE)
+})
 
 ## expect warnings
 
