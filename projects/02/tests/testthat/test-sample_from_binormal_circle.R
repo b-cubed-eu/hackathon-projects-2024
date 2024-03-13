@@ -108,6 +108,15 @@ test_that("output class is correct", {
                   class = "data.frame")
 })
 
+test_that("correct column names present", {
+  suppressWarnings({
+    expect_contains(names(sample_from_binormal_circle(observations_sf1)),
+                    c("coordinateUncertaintyInMeters", "geometry"))
+  })
+  expect_contains(names(sample_from_binormal_circle(observations_sf2)),
+                  c("coordinateUncertaintyInMeters", "geometry"))
+})
+
 test_that("coordinateUncertaintyInMeters column is handled correctly", {
   # in case of missing initial coordinateUncertaintyInMeters column
   ## no seed
