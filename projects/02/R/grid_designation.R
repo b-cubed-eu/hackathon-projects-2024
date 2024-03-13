@@ -157,7 +157,7 @@ grid_designation <- function(
     source(here("R", "sample_from_uniform_circle.R"))
     new_points <- sample_from_uniform_circle(observations, seed)
   } else {
-    source(here("R", "sample_from_normal_circle.R"))
+    source(here("R", "sample_from_binormal_circle.R"))
     new_points <- sample_from_binormal_circle(observations, p_norm, seed)
   }
 
