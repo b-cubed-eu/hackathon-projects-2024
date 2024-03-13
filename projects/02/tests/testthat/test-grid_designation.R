@@ -117,6 +117,13 @@ test_that("crs of observations and grid must match", {
     fixed = TRUE)
 })
 
+test_that('randomisation should be one of "uniform", "normal"', {
+  expect_error(
+    grid_designation(observations_sf2, grid_df1, randomisation = "beta"),
+    regexp = '`randomisation` should be one of "uniform", "normal".',
+    fixed = TRUE)
+})
+
 ## expect warnings
 test_that("unique ids if id column is provided", {
   expect_warning(
