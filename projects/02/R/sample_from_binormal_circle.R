@@ -24,7 +24,7 @@
 #'   lat = runif(n_points, ylim[1], ylim[2]),
 #'   long = runif(n_points, xlim[1], xlim[2]),
 #'   coordinateUncertaintyInMeters = coordinate_uncertainty
-#'   ) |>
+#'   ) %>%
 #'   st_as_sf(coords = c("long", "lat"), crs = 3035)
 #'
 #' # Sample points within uncertainty circles according to normal rules
@@ -133,7 +133,7 @@ sample_from_binormal_circle <- function(
     new_points <- cbind(
       new_points_df,
       coordinateUncertaintyInMeters = observations$coordinateUncertaintyInMeters
-      ) |>
+      ) %>%
       sf::st_as_sf(coords = c("x_new", "y_new"), crs = sf::st_crs(observations))
   }
 

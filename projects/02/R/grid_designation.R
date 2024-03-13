@@ -28,11 +28,11 @@
 #'   lat = runif(n_points, ylim[1], ylim[2]),
 #'   long = runif(n_points, xlim[1], xlim[2]),
 #'   coordinateUncertaintyInMeters = coordinate_uncertainty
-#'   ) |>
+#'   ) %>%
 #'   st_as_sf(coords = c("long", "lat"), crs = 3035)
 #'
 #' # Add buffer uncertainty in meters around points
-#' observations_buffered <- observations_sf |>
+#' observations_buffered <- observations_sf %>%
 #'   st_buffer(observations_sf$coordinateUncertaintyInMeters)
 #'
 #' # Create grid
@@ -40,7 +40,7 @@
 #'   observations_buffered,
 #'   square = TRUE,
 #'   cellsize = c(200, 200)
-#'   ) |>
+#'   ) %>%
 #'   st_as_sf()
 #'
 #' # Create occurrence cube
@@ -173,22 +173,22 @@ grid_designation <- function(
   # Return object
   if (aggregate) {
     # Aggregate to get the cube
-    occ_cube_df <- intersect_grid |>
-      sf::st_drop_geometry() |>
-      dplyr::group_by_at(id_col) |>
+    occ_cube_df <- intersect_grid %>%
+      sf::st_drop_geometry() %>%
+      dplyr::group_by_at(id_col) %>%
       dplyr::summarise(
         n = dplyr::n(),
-        min_coord_uncertainty = min(coordinateUncertaintyInMeters)) |>
+        min_coord_uncertainty = min(coordinateUncertaintyInMeters)) %>%
       dplyr::ungroup()
 
     # Add zeroes
-    out_sf <- occ_cube_df |>
-      dplyr::full_join(grid, by = dplyr::join_by(!!id_col)) |>
-      dplyr::mutate(n = as.integer(ifelse(is.na(n), 0, n))) |>
+    out_sf <- occ_cube_df %>%
+      dplyr::full_join(grid, by = dplyr::join_by(!!id_col)) %>%
+      dplyr::mutate(n = as.integer(ifelse(is.na(n), 0, n))) %>%
       sf::st_as_sf(crs = sf::st_crs(grid))
   } else {
     # Return new points
-    out_sf <- intersect_grid |>
+    out_sf <- intersect_grid %>%
       dplyr::select_at(c(id_col, "coordinateUncertaintyInMeters"))
   }
 
