@@ -145,7 +145,7 @@ test_that("provided id column present in provided grid", {
 
 ## expected outputs
 test_that("output class is correct", {
-  # Aggregate = TRUE
+  # aggregate = TRUE
   suppressWarnings({
     expect_s3_class(grid_designation(observations_sf1, grid = grid_df1),
                     class = "sf")
@@ -157,7 +157,7 @@ test_that("output class is correct", {
   expect_s3_class(grid_designation(observations_sf2, grid = grid_df1),
                   class = "data.frame")
 
-  # Aggregate = FALSE
+  # aggregate = FALSE
   suppressWarnings({
     expect_s3_class(grid_designation(observations_sf1, grid = grid_df1,
                                      aggregate = FALSE),
@@ -175,7 +175,7 @@ test_that("output class is correct", {
 })
 
 test_that("correct column names present", {
-  # Aggregate = TRUE, randomisation = "uniform"
+  # aggregate = TRUE, randomisation = "uniform"
   suppressWarnings({
     expect_contains(names(grid_designation(observations_sf1, grid = grid_df1)),
                     c("id", "n", "min_coord_uncertainty", "geometry"))
@@ -190,7 +190,7 @@ test_that("correct column names present", {
       id_col = "identifier")),
     c("identifier", "n", "min_coord_uncertainty", "geometry"))
 
-  # Aggregate = TRUE, randomisation = "normal"
+  # aggregate = TRUE, randomisation = "normal"
   suppressWarnings({
     expect_contains(names(grid_designation(observations_sf1, grid = grid_df1,
                                            randomisation = "normal")),
@@ -208,7 +208,7 @@ test_that("correct column names present", {
       randomisation = "normal")),
     c("identifier", "n", "min_coord_uncertainty", "geometry"))
 
-  # Aggregate = FALSE, randomisation = "uniform"
+  # aggregate = FALSE, randomisation = "uniform"
   suppressWarnings({
     expect_contains(names(grid_designation(observations_sf1, grid = grid_df1,
                                            aggregate = FALSE)),
@@ -226,7 +226,7 @@ test_that("correct column names present", {
       aggregate = FALSE)),
     c("identifier", "coordinateUncertaintyInMeters", "geometry"))
 
-  # Aggregate = FALSE, randomisation = "normal"
+  # aggregate = FALSE, randomisation = "normal"
   suppressWarnings({
     expect_contains(names(grid_designation(observations_sf1, grid = grid_df1,
                                            aggregate = FALSE,
@@ -303,7 +303,7 @@ potential_gridcells_sf2 <- st_intersection(grid_df2,
   pull(id)
 
 test_that("check possible outcomes for grid cell designation", {
-  # randomisation = "uniform"
+  # aggregate = TRUE, randomisation = "uniform"
   suppressWarnings({
     expect_contains(potential_gridcells_sf1,
                     grid_designation(observations_sf1, grid = grid_df2,
@@ -316,7 +316,7 @@ test_that("check possible outcomes for grid cell designation", {
                                    id_col = "id") %>%
                     filter(n > 0) %>%
                     pull(id))
-  # randomisation = "normal"
+  # aggregate = TRUE, randomisation = "normal"
   suppressWarnings({
     expect_contains(potential_gridcells_sf1,
                     grid_designation(observations_sf1, grid = grid_df2,
@@ -331,4 +331,87 @@ test_that("check possible outcomes for grid cell designation", {
                                    randomisation = "normal") %>%
                     filter(n > 0) %>%
                     pull(id))
+
+  # aggregate = FALSE, randomisation = "uniform"
+  suppressWarnings({
+    expect_contains(potential_gridcells_sf1,
+                    grid_designation(observations_sf1, grid = grid_df2,
+                                     id_col = "id",
+                                     aggregate = FALSE) %>%
+                      pull(id))
+  })
+  expect_contains(potential_gridcells_sf2,
+                  grid_designation(observations_sf2, grid = grid_df2,
+                                   id_col = "id",
+                                   aggregate = FALSE) %>%
+                    pull(id))
+  # aggregate = FALSE, randomisation = "normal"
+  suppressWarnings({
+    expect_contains(potential_gridcells_sf1,
+                    grid_designation(observations_sf1, grid = grid_df2,
+                                     id_col = "id",
+                                     randomisation = "normal",
+                                     aggregate = FALSE) %>%
+                      pull(id))
+  })
+  expect_contains(potential_gridcells_sf2,
+                  grid_designation(observations_sf2, grid = grid_df2,
+                                   id_col = "id",
+                                   randomisation = "normal",
+                                   aggregate = FALSE) %>%
+                    pull(id))
+})
+
+test_that("number of observations should equal numbers in grid", {
+  # randomisation = "uniform"
+  suppressWarnings({
+    expect_equal(grid_designation(observations_sf1, grid = grid_df1) %>%
+                   pull(n) %>%
+                   sum(),
+                 nrow(observations_sf1))
+  })
+  expect_equal(grid_designation(observations_sf2, grid = grid_df1) %>%
+                 pull(n) %>%
+                 sum(),
+               nrow(observations_sf2))
+  # randomisation = "normal"
+  suppressWarnings({
+    expect_equal(grid_designation(observations_sf1, grid = grid_df1,
+                                  randomisation = "normal") %>%
+                   pull(n) %>%
+                   sum(),
+                 nrow(observations_sf1))
+  })
+  expect_equal(grid_designation(observations_sf2, grid = grid_df1,
+                                randomisation = "normal") %>%
+                 pull(n) %>%
+                 sum(),
+               nrow(observations_sf2))
+})
+
+test_that("number of observations be the same as output if aggregate = FALSE", {
+  # randomisation = "uniform"
+  suppressWarnings({
+    expect_equal(grid_designation(observations_sf1, grid = grid_df1,
+                                  aggregate = FALSE) %>%
+                   nrow(),
+                 nrow(observations_sf1))
+  })
+  expect_equal(grid_designation(observations_sf2, grid = grid_df1,
+                                aggregate = FALSE) %>%
+                 nrow(),
+               nrow(observations_sf2))
+  # randomisation = "normal"
+  suppressWarnings({
+    expect_equal(grid_designation(observations_sf1, grid = grid_df1,
+                                  randomisation = "normal",
+                                  aggregate = FALSE) %>%
+                   nrow(),
+                 nrow(observations_sf1))
+  })
+  expect_equal(grid_designation(observations_sf2, grid = grid_df1,
+                                randomisation = "normal",
+                                aggregate = FALSE) %>%
+                 nrow(),
+               nrow(observations_sf2))
 })
