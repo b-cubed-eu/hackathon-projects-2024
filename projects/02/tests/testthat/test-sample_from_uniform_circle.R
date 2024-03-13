@@ -64,11 +64,9 @@ test_that("arguments are of the right length", {
 })
 
 ## expect warnings
-warning_message <- paste("No column `coordinateUncertaintyInMeters` present!",
-                         "Assuming no uncertainty around observations.")
 test_that("warning if coordinateUncertaintyInMeters column is not present", {
   expect_warning(sample_from_uniform_circle(observations_sf1),
-                 regexp = warning_message,
+                 regexp = "No column `coordinateUncertaintyInMeters` present!",
                  fixed = TRUE)
 })
 
