@@ -23,7 +23,7 @@
 #'   lat = runif(n_points, ylim[1], ylim[2]),
 #'   long = runif(n_points, xlim[1], xlim[2]),
 #'   coordinateUncertaintyInMeters = coordinate_uncertainty
-#'   ) |>
+#'   ) %>%
 #'   st_as_sf(coords = c("long", "lat"), crs = 3035)
 #'
 #' # Sample points within uncertainty circles according to uniform rules
@@ -59,7 +59,7 @@ sample_from_uniform_circle <- function(
       set.seed(seed)
     } else {
       cli::cli_abort(c(
-        "{.var seed} must be an numeric vector of length 1.",
+        "{.var seed} must be a numeric vector of length 1.",
         "x" = paste("You've supplied a {.cls {class(seed)}} vector",
                     "of length {length(seed)}."))
       )
@@ -77,7 +77,7 @@ sample_from_uniform_circle <- function(
 
   # Get random angle and radius
   uncertainty_points <-
-    observations |>
+    observations %>%
     dplyr::mutate(
       random_angle = runif(nrow(observations), 0, 2 * pi),
       random_r = sqrt(runif(nrow(observations), 0, 1)) *
@@ -85,13 +85,13 @@ sample_from_uniform_circle <- function(
 
   # Calculate new point
   new_points <-
-    uncertainty_points |>
+    uncertainty_points %>%
     dplyr::mutate(
       x_new = sf::st_coordinates(geometry)[, 1] +
         random_r * cos(random_angle),
       y_new = sf::st_coordinates(geometry)[, 2] +
-        random_r * sin(random_angle)) |>
-    sf::st_drop_geometry() |>
+        random_r * sin(random_angle)) %>%
+    sf::st_drop_geometry() %>%
     sf::st_as_sf(coords = c("x_new", "y_new"),
                  crs = sf::st_crs(observations)) %>%
     dplyr::select(coordinateUncertaintyInMeters)
