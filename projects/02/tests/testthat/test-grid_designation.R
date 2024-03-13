@@ -109,8 +109,34 @@ test_that("arguments are of the right length", {
                fixed = TRUE)
 })
 
-## expect warnings
+test_that("crs of observations and grid must match", {
+  expect_error(
+    grid_designation(observations_sf2,
+                     grid = st_transform(grid_df1, crs = 4326)),
+    regexp = "sf::st_crs(observations) == sf::st_crs(grid) is not TRUE",
+    fixed = TRUE)
+})
 
+## expect warnings
+test_that("unique ids if id column is provided", {
+  expect_warning(
+    grid_designation(observations_sf2,
+                     grid = grid_df1 %>%
+                       mutate(id = 1),
+                     id_col = "id"),
+    regexp = "Column `id` does not contain unique ids for grid cells!",
+    fixed = TRUE)
+})
+
+test_that("provided id column present in provided grid", {
+  expect_warning(
+    grid_designation(observations_sf2,
+                     grid = grid_df1 %>%
+                       mutate(id = seq_len(nrow(grid_df1))),
+                     id_col = "identifier"),
+    regexp = 'Column name "identifier" not present in provided grid!',
+    fixed = TRUE)
+})
 
 ## expected outputs
 
