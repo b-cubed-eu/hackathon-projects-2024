@@ -37,11 +37,6 @@ sample_from_binormal_circle <- function(
     observations,
     p_norm = 0.95,
     seed = NA) {
-  # Load packages or install them if not available
-  # (not good practise for package!)
-  if (!requireNamespace("mnormt", quietly = TRUE)) install.packages("mnormt")
-  require(mnormt)
-
   ### Start checks
   # 1. check input lengths
   if (length(seed) != 1) {
@@ -111,6 +106,11 @@ sample_from_binormal_circle <- function(
     new_points <- observations %>%
       select(coordinateUncertaintyInMeters)
   } else {
+    # Load packages or install them if not available
+    # (not good practise for package!)
+    if (!requireNamespace("mnormt", quietly = TRUE)) install.packages("mnormt")
+    require(mnormt)
+
     # Calculate 2-dimensional means and variance-covariance matrices
     means <- sf::st_coordinates(observations$geometry)
     variances <- (-observations$coordinateUncertaintyInMeters^2) /
