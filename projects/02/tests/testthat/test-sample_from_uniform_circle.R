@@ -85,3 +85,95 @@ test_that("output class is correct", {
   expect_s3_class(sample_from_uniform_circle(observations_sf2),
                   class = "data.frame")
 })
+
+
+test_that("coordinateUncertaintyInMeters column is handled correctly", {
+  # in case of missing initial coordinateUncertaintyInMeters column
+  ## no seed
+  suppressWarnings({
+    expect_equal(
+      sample_from_uniform_circle(observations_sf1) %>%
+        pull(coordinateUncertaintyInMeters),
+      rep(0, nrow(observations_sf1)))
+    ## different seeds
+    expect_equal(
+      sample_from_uniform_circle(observations_sf1, seed = 123) %>%
+        pull(coordinateUncertaintyInMeters),
+      rep(0, nrow(observations_sf1)))
+    expect_equal(
+      sample_from_uniform_circle(observations_sf1, seed = 456) %>%
+        pull(coordinateUncertaintyInMeters),
+      rep(0, nrow(observations_sf1)))
+  })
+
+  # in case of provided initial coordinateUncertaintyInMeters column
+  ## no seed
+  expect_equal(
+    sample_from_uniform_circle(observations_sf2) %>%
+      pull(coordinateUncertaintyInMeters),
+    observations_sf2 %>%
+      pull(coordinateUncertaintyInMeters))
+  ## different seeds
+  expect_equal(
+    sample_from_uniform_circle(observations_sf2, seed = 123) %>%
+      pull(coordinateUncertaintyInMeters),
+    observations_sf2 %>%
+      pull(coordinateUncertaintyInMeters))
+  expect_equal(
+    sample_from_uniform_circle(observations_sf2, seed = 456) %>%
+      pull(coordinateUncertaintyInMeters),
+    observations_sf2 %>%
+      pull(coordinateUncertaintyInMeters))
+})
+
+# This function calculates if the distances between the sampled points and the
+# original point are not larger than their coordinate uncertainty
+test_smaller_distances <- function(observations, seed = NA) {
+  sample_dists <- sample_from_uniform_circle(observations, seed = seed) %>%
+    mutate(dist = st_distance(geometry, observations,
+                              by_element = TRUE),
+           dist = as.numeric(dist)) %>%
+    pull(dist)
+  test_dists_df <- observations %>%
+    st_drop_geometry() %>%
+    mutate(dist = sample_dists,
+           test = dist < coordinateUncertaintyInMeters)
+
+  return(all(test_dists_df$test))
+}
+
+test_that("distance to new point falls within coordinate uncertainty", {
+  # in case of missing initial coordinateUncertaintyInMeters column
+  suppressWarnings({
+    ## no seed
+    expect_equal(
+      sample_from_uniform_circle(observations_sf1) %>%
+        mutate(dist = st_distance(geometry, observations_sf1,
+                                  by_element = TRUE),
+               dist = as.numeric(dist)) %>%
+        pull(dist),
+      rep(0, nrow(observations_sf1)))
+    ## different seeds
+    expect_equal(
+      sample_from_uniform_circle(observations_sf1, seed = 123) %>%
+        mutate(dist = st_distance(geometry, observations_sf1,
+                                  by_element = TRUE),
+               dist = as.numeric(dist)) %>%
+        pull(dist),
+      rep(0, nrow(observations_sf1)))
+    expect_equal(
+      sample_from_uniform_circle(observations_sf1, seed = 456) %>%
+        mutate(dist = st_distance(geometry, observations_sf1,
+                                  by_element = TRUE),
+               dist = as.numeric(dist)) %>%
+        pull(dist),
+      rep(0, nrow(observations_sf1)))
+  })
+
+  # in case of provided initial coordinateUncertaintyInMeters column
+  ## no seed
+  expect_true(test_smaller_distances(observations_sf2))
+  ## different seeds
+  expect_true(test_smaller_distances(observations_sf2, seed = 123))
+  expect_true(test_smaller_distances(observations_sf2, seed = 456))
+})
