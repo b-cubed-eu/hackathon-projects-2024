@@ -142,4 +142,67 @@ test_that("provided id column present in provided grid", {
 })
 
 ## expected outputs
+test_that("output class is correct", {
+  # Aggregate = TRUE
+  suppressWarnings({
+    expect_s3_class(grid_designation(observations_sf1, grid = grid_df1),
+                    class = "sf")
+    expect_s3_class(grid_designation(observations_sf1, grid = grid_df1),
+                    class = "data.frame")
+  })
+  expect_s3_class(grid_designation(observations_sf2, grid = grid_df1),
+                  class = "sf")
+  expect_s3_class(grid_designation(observations_sf2, grid = grid_df1),
+                  class = "data.frame")
 
+  # Aggregate = FALSE
+  suppressWarnings({
+    expect_s3_class(grid_designation(observations_sf1, grid = grid_df1,
+                                     aggregate = FALSE),
+                    class = "sf")
+    expect_s3_class(grid_designation(observations_sf1, grid = grid_df1,
+                                     aggregate = FALSE),
+                    class = "data.frame")
+  })
+  expect_s3_class(grid_designation(observations_sf2, grid = grid_df1,
+                                   aggregate = FALSE),
+                  class = "sf")
+  expect_s3_class(grid_designation(observations_sf2, grid = grid_df1,
+                                   aggregate = FALSE),
+                  class = "data.frame")
+})
+
+test_that("correct column names present", {
+  # Aggregate = TRUE
+  suppressWarnings({
+    expect_contains(names(grid_designation(observations_sf1, grid = grid_df1)),
+                    c("id", "n", "min_coord_uncertainty", "geometry"))
+  })
+  expect_contains(names(grid_designation(observations_sf2, grid = grid_df1)),
+                  c("id", "n", "min_coord_uncertainty", "geometry"))
+  expect_contains(
+    names(grid_designation(
+      observations_sf2,
+      grid = grid_df1 %>%
+        mutate(identifier = seq_len(nrow(grid_df1))),
+      id_col = "identifier")),
+    c("identifier", "n", "min_coord_uncertainty", "geometry"))
+
+  # Aggregate = FALSE
+  suppressWarnings({
+    expect_contains(names(grid_designation(observations_sf1, grid = grid_df1,
+                                           aggregate = FALSE)),
+                    c("id", "coordinateUncertaintyInMeters", "geometry"))
+  })
+  expect_contains(names(grid_designation(observations_sf2, grid = grid_df1,
+                                         aggregate = FALSE)),
+                  c("id", "coordinateUncertaintyInMeters", "geometry"))
+  expect_contains(
+    names(grid_designation(
+      observations_sf2,
+      grid = grid_df1 %>%
+        mutate(identifier = seq_len(nrow(grid_df1))),
+      id_col = "identifier",
+      aggregate = FALSE)),
+    c("identifier", "coordinateUncertaintyInMeters", "geometry"))
+})
