@@ -106,32 +106,36 @@ sample_from_binormal_circle <- function(
       paste("No column {.var coordinateUncertaintyInMeters} present!",
             "Assuming no uncertainty around observations.")
     )
-  }
 
-  # Calculate 2-dimensional means and variance-covariance matrices
-  means <- sf::st_coordinates(observations$geometry)
-  variances <- (-observations$coordinateUncertaintyInMeters^2) /
-    (2 * log(1 - p_norm))
-  varcovariances <- lapply(variances, function(var) {
-    matrix(c(var, -1, -1, var), nrow = 2)
-  })
+    # New points are equal to original points in case of no uncertainty
+    new_points <- observations %>%
+      select(coordinateUncertaintyInMeters)
+  } else {
+    # Calculate 2-dimensional means and variance-covariance matrices
+    means <- sf::st_coordinates(observations$geometry)
+    variances <- (-observations$coordinateUncertaintyInMeters^2) /
+      (2 * log(1 - p_norm))
+    varcovariances <- lapply(variances, function(var) {
+      matrix(c(var, -1, -1, var), nrow = 2)
+    })
 
-  # Sample new points from bivariate Normal distribution
-  new_points_list <- vector("list", length = nrow(observations))
-  for (i in seq_len(nrow(observations))) {
-    new_points_list[[i]] <- rmnorm(
-      1, mean = means[i,], varcov = varcovariances[[i]]
-    )
-  }
-  new_points_df <- do.call(rbind.data.frame, new_points_list)
-  names(new_points_df) <- c("x_new", "y_new")
+    # Sample new points from bivariate Normal distribution
+    new_points_list <- vector("list", length = nrow(observations))
+    for (i in seq_len(nrow(observations))) {
+      new_points_list[[i]] <- rmnorm(
+        1, mean = means[i,], varcov = varcovariances[[i]]
+      )
+    }
+    new_points_df <- do.call(rbind.data.frame, new_points_list)
+    names(new_points_df) <- c("x_new", "y_new")
 
-  # Create geometry and add uncertainties
-  new_points <- cbind(
+    # Create geometry and add uncertainties
+    new_points <- cbind(
       new_points_df,
       coordinateUncertaintyInMeters = observations$coordinateUncertaintyInMeters
-    ) |>
-    sf::st_as_sf(coords = c("x_new", "y_new"), crs = sf::st_crs(observations))
+      ) |>
+      sf::st_as_sf(coords = c("x_new", "y_new"), crs = sf::st_crs(observations))
+  }
 
   return(new_points)
 }
