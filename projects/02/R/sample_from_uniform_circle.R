@@ -59,7 +59,7 @@ sample_from_uniform_circle <- function(
       set.seed(seed)
     } else {
       cli::cli_abort(c(
-        "{.var seed} must be an numeric vector of length 1.",
+        "{.var seed} must be a numeric vector of length 1.",
         "x" = paste("You've supplied a {.cls {class(seed)}} vector",
                     "of length {length(seed)}."))
       )
