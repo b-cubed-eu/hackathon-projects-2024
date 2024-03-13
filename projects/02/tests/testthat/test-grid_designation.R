@@ -40,15 +40,11 @@ grid_df1 <- st_make_grid(
   square = TRUE,
   cellsize = c(200, 200)
   ) %>%
-  st_as_sf()
+  st_as_sf() %>%
+  rename(geometry = x)
 
 ## grid without geometry
-grid_df3 <- st_make_grid(
-  observations_buffered,
-  square = TRUE,
-  cellsize = c(200, 200)
-  ) %>%
-  st_as_sf() %>%
+grid_df3 <- grid_df1 %>%
   st_drop_geometry()
 
 # Unit tests
