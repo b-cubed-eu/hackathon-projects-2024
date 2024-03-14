@@ -62,15 +62,20 @@ data.frame(
 ```
 
 These three processes can be described in three main functions respectively `simulate_occurrences()`, `sample_observations()` and `grid_designation()`.
-These can depend on multiple helper functions for example per variable mentioned above or for specific subprocesses (e.g. spatiotemporal autocorrelation).
+These can depend on multiple helper functions for example per variable mentioned above or for specific subprocesses (e.g. temporal autocorrelation).
 
 # Coding style and software requirements
 
-Please consult the [B-Cubed documentation website](https://docs.b-cubed.eu/dev-guide/) for recommendations regarding coding style, good practice and software requirements.
+Please consult the [B-Cubed documentation website](https://docs.b-cubed.eu/dev-guide/) for recommendations regarding coding style, code testing, package creation, software requirements ...
 
-# Occurrence process
+# Programming
 
-## Description
+The three processes described above can be split in three main functions respectively `simulate_occurrences()`, `sample_observations()` and `grid_designation()`.
+These can depend on multiple helper functions.
+
+## Occurrence process
+
+### Description
 
 The function `simulate_occurrences()` simulates occurrences of a species within a given spatial and/or temporal extend.
 
@@ -87,7 +92,7 @@ simulate_occurrences(
 }
 ```
 
-## Function arguments
+### Function arguments
 
 **polygon**:
 
@@ -185,17 +190,19 @@ my_own_linear_function <- function(
 
 A numeric value between indicating the strength of spatiotemporal autocorrelation.
 
+> In a first stage we will focus on spatial autocorrelation and temporal autocorrelation. Once this is established, programming a link between the two (i.e. spatiotemporal autocorrelation) can be explored.
+
 **seed**:
 
 A positive numeric value. The seed for random number generation to make results reproducible. If `NA` (the default), no seed is used.
 
-## Returns
+### Returns
 
 An sf object with POINT geometry containing the locations of the simulated occurrences and a `time_point` column containing the time point associated with each occurrence.
 
-# Detection process
+## Detection process
 
-## Description
+### Description
 
 The function `sample_observations()` samples observations from occurrences based on detection probability and sampling bias.
 
@@ -234,7 +241,7 @@ add_coordinate_uncertainty(
 }
 ```
 
-## Function arguments
+### Function arguments
 
 **occurrences**:
 
@@ -271,13 +278,13 @@ A positive numeric value or vector with length `nrow(occurrences)` describing th
 
 A positive numeric value. The seed for random number generation to make results reproducible. If `NA` (the default), no seed is used.
 
-## Returns
+### Returns
 
 An sf object with POINT geometry containing the locations of the sampled observations, a `detection_probability` column containing the detection probability for each observation (will be the same for all), a `bias_weight` column containing the sampling probability based on sampling bias, a `sampling_probability` column containing the combined sampling probability from detection probability and sampling bias, and a `coordinateUncertaintyInMeters` column containing the coordinate uncertainty for each observation.
 
-# Grid designation process
+## Grid designation process
 
-## Description
+### Description
 
 The function `grid_designation()` designates observations to cells of a given grid to create an aggregated data cube.
 
@@ -294,7 +301,7 @@ grid_designation(
 }
 ```
 
-## Function arguments
+### Function arguments
 
 **observations**:
 
@@ -324,8 +331,20 @@ Logical. If `TRUE` (default), return data cube in aggregated form (grid with num
 
 A numeric value between 0 and 1. Only used if `randomisation = "normal"`. The proportion of all possible samples from a a bivariate Normal distribution that fall within the uncertainty circle. If normal randomisation is used and no value is given, the default `p_norm` value is 0.95.
 
-## Returns
+### Returns
 
 In case of `aggregate = TRUE`, an sf object with POLYGON geometry containing the locations of the grid cells, an `n` column with the number of observations per grid cell, and a `min_coord_uncertainty` column containing the minimal coordinate uncertainty per grid cell. In case of `aggregate = FALSE`, an sf object with POINT geometry containing the locations of the sampled observations within the uncertainty circle, and a `coordinateUncertaintyInMeters` column containing the coordinate uncertainty for each observation.
+
+# Unit testing
+
+Unit tests are made using the **testthat** package [@wickham2011testthat].
+They can be found under `tests > testthat > test-"function_name".R`.
+The tests can be performed for each function in each script or you can run the markdown file (`markdown > 03_unit_testing.Rmd`) to run all tests.
+
+# Documentation and vignettes
+
+For all functions we add [roxygen2](https://roxygen2.r-lib.org/) documentation to the file.
+We can create vignettes with examples demonstrating the use of the functions with figures etc. with Rmarkdown (or Quarto ...).
+They can be placed in the `markdown` folder or in a new folder.
 
 # References
