@@ -364,7 +364,11 @@ ggplot() +
   theme_void()
 ```
 
-# Visualisation
+# Project tasks
+
+Apart from programming these main functions, there are some other tasks that can be carried out depending of the number of participants and the time at hands.
+
+## Visualisation
 
 At the end of the hackathon it would be nice to have some visual support (and not only lines of code) for the project.
 Here are some ideas
@@ -374,6 +378,36 @@ Here are some ideas
 -  Visualise differences between occurrence process and detection process?
 -  After the grid designation process occurrences/abundances can be plotted in space over time.
 -  ...?
+
+## Create unit tests
+
+We can create unit tests for all functions.
+Unit tests verify that the function behaves as expected under different scenarios. This helps to catch bugs early in the development process and ensures that changes made to the function in the future will not inadvertently break its behaviour.
+They are also useful in a collaboration setting since they provide insight into how a function is intended to work and can help new team members understand the codebase more quickly.
+Furthermore, you can quickly verify if any changes to a function result in unexpected outputs.
+
+Checkout the [B-Cubed documentation website](https://docs.b-cubed.eu/dev-guide/r/#testing) for good practices.
+
+## Create documentation and vignettes
+
+Once some of the functions are ready, documentation and vignettes with examples demonstrating their use can be made.
+This will make the code visible to the public and invite people to use our functions.
+
+## Create a packages
+
+Once we have the functions, unit tests and documentation, the step to switch to an R package is not that large.
+This can also be done before any tests or documentation.
+This could be done in a separate GitHub repo for [B-Cubed](https://github.com/b-cubed-eu).
+
+Checkout the [B-Cubed documentation website](https://docs.b-cubed.eu/dev-guide/r-packages/) for good practices.
+
+## Explore species movement argument
+
+The current idea of the occurrence process is to sample individuals from a spatial field that has a certain amount of spatial autocorrelation.
+The individuals of species can change over time (temporal autocorrelation).
+Additional functionality to program spatiotemporal autocorrelation can be explored.
+Instead of sampling individuals anew at each time point, we could model movement of individuals such that individuals move each time point to a nearby spot depending on their step size and the probability of the spatial field.
+
 
 # Useful references/packages {#references}
 
