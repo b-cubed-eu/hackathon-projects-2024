@@ -232,6 +232,7 @@ The function `add_coordinate_uncertainty()` is a helper function for `sample_obs
     -   `sampleOccurrences()`
 4.  Convert to sf object with POINT geometry
     -   `sf::st_as_sf()`
+    -   create helper function `virtualspecies_to_sf()`?
 
 ```         
 add_coordinate_uncertainty(

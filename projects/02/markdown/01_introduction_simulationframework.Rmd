@@ -379,6 +379,11 @@ Here are some ideas
 -  After the grid designation process occurrences/abundances can be plotted in space over time.
 -  ...?
 
+## Allow incorporation of virtual species 
+
+Ensure incorporation of virtual species in the workflow via the **virtualspecies** package.
+See `02_framework_architecture.Rmd` were this could be done.
+
 ## Create unit tests
 
 We can create unit tests for all functions.
@@ -393,7 +398,7 @@ Checkout the [B-Cubed documentation website](https://docs.b-cubed.eu/dev-guide/r
 Once some of the functions are ready, documentation and vignettes with examples demonstrating their use can be made.
 This will make the code visible to the public and invite people to use our functions.
 
-## Create a packages
+## Create a package
 
 Once we have the functions, unit tests and documentation, the step to switch to an R package is not that large.
 This can also be done before any tests or documentation.
