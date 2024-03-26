@@ -338,8 +338,10 @@ We also show the sampled point within the uncertainty circle (these can be obtai
 If the argument `randomisation = "uniform"` (= default), each point in the uncertainty circle has an equal probability to be selected. In the other option `randomisation = "normal"`, a point is sampled from a bivariate Normal distribution, but this option is outside the scope of this project.
 
 ```{r visualise-cubes}
-# Source function to for observation to grid designation 
-source(here("R", "grid_designation.R"))
+# Source functions to for observation to grid designation
+# install.packages("remotes")
+# remotes::install_github("b-cubed-eu/simcuber")
+library(simcuber)
 
 # Create occurrence cube
 occurrence_cube_df <- grid_designation(
