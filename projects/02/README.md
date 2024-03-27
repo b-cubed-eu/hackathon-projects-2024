@@ -10,6 +10,8 @@ The simulation framework can be used to assess multiple research questions under
 
 ## More information
 
+The functions for this simulation framework will be developed in the (simcuber)[https://github.com/b-cubed-eu/simcuber] R package in a separate repository.
+Documentation and vignettes will be create on the designated (pkgdown website)[https://b-cubed-eu.github.io/simcuber/].
 
 ## Lead(s)
 
