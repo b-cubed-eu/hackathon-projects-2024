@@ -15,3 +15,6 @@ vendor/
 # R
 .Rproj.user
 .Rhistory
+
+# Ignore big files
+*.html
