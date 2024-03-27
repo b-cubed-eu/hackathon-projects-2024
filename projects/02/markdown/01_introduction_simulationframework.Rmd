@@ -1,0 +1,435 @@
+---
+title: "Project 2: Unveiling Ecological Dynamics Through Simulation and Visualization of Biodiversity Data Cubes"
+subtitle: "Setup and introduction"
+author: "Ward Langeraert"
+date: "`r Sys.Date()`"
+output:
+  bookdown::html_document2:
+    code_folding: hide
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+# Setup
+library(knitr)
+library(here)
+opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE)
+opts_knit$set(root.dir = here())
+
+# Packages
+library(tidyverse)
+library(sf)
+```
+
+# Introduction
+
+Ecological systems are inherently variable, and a single dataset does not capture the full range of possible conditions. *Simulations* allow us to explore a broader *spectrum of scenarios*, considering different combinations of *parameters*. As far as we know, there is no simulation framework present for *biodiversity data cubes*. A simulation framework in this context would help to examine the generalisability of the (statistical) properties of these data cubes and the derived indicators.
+
+# Technical setup and requirements
+## Software installation
+
+To join this project there are two software requirements: R and Git.
+
+1.  **R** is a programming language and environment specifically designed for statistical computing and data analysis. A recommended integrated development environment (IDE) for R is RStudio. RStudio makes working with R more accessible and efficient.
+2. **Git** is a distributed version control system used for tracking changes in source code during software development.
+
+You can download R and RStudio from [here](https://posit.co/download/rstudio-desktop/) and Git from [here](https://git-scm.com/downloads).
+
+## Setting up version control for efficient collaboration
+
+-  If you do not have a GitHub account, you can sign up [for a new GitHub account](https://docs.github.com/en/get-started/start-your-journey/creating-an-account-on-github). 
+-  If this is not yet done, make sure to [connect RStudio to Git and GitHub](https://happygitwithr.com/rstudio-git-github).
+-  Clone the hackathon GitHub repository [hackathon-projects-2024](https://github.com/b-cubed-eu/hackathon-projects-2024).
+-  Checkout branch [hackathon-project-02](https://github.com/b-cubed-eu/hackathon-projects-2024/tree/hackathon-project-02).
+
+# Monte Carlo simulation framework for biodiversity data cubes
+
+In this project, we will aim to create a simulation framework for biodiversity data cubes based on [Monte Carlo methods](https://en.wikipedia.org/wiki/Monte_Carlo_method) (= based on repeated random sampling).
+
+We need to simulate three different processes related to different variables that depend on *species*, *observation*, *space* and *time*.
+
+1.  occurrence process
+2.  detection process
+3.  grid designation process
+
+In this project, we will focus on the occurrence and detection processes. For grid designation, R code is already available.
+
+```{r processes-tab, echo=FALSE}
+tibble(
+  process = c(
+    rep("occurrence", 2),
+    rep("detection", 3)
+  ),
+  variable = c(
+    "rarity",
+    "spatial clustering",
+    "detection probability",
+    "sampling effort",
+    "spatial uncertainty"
+  ),
+  dependency = c(
+    "species, time",
+    "species",
+    "species",
+    "space, time",
+    "observation"
+  )) %>%
+  kable()
+```
+
+```{r visual-framework, out.width="80%", fig.align="center", echo=FALSE}
+include_graphics(here("media", "visual_proposal.png"), error = FALSE)
+```
+
+## Occurrence process
+
+To simulate the occurrence of species in a certain spatial region, we need information on the rarity as well as a measure for spatial clustering.
+
+> The major difficulty will probably be to include spatio-temporal autocorrelation. For this, we can look at other packages (e.g. listed in Section \@ref(references))
+
+### Rarity
+
+-  Rarity can be different for each *species* and can change over *time*.
+-  Values related to abundance/density
+-  Implementation
+   - Species: abundance/density for each species. Density can be converted to abundance based on the area of the polygon. Abundances can be generated from the Poisson distribution (`rpois()`)
+   - Time: the order of random walk or a function (e.g. linear, exponential, sinus …)
+
+```{r abundance-sim}
+# Set seed for reproducibility
+set.seed(123)
+
+# Number of time points
+n_time_points <- 50
+
+# Time vector
+time <- 1:n_time_points
+
+# Poisson distribution parameters
+lambda <- 100 - 1*time
+
+# Number of simulations
+n_sim <- 100
+list_abundances <- vector("list", length = n_sim)
+
+for (i in seq_len(n_sim)) {
+  # Simulate abundances with Poisson distribution
+  abundances <- rpois(n_time_points, lambda)
+  
+  # Create a data frame
+  list_abundances[[i]] <- data.frame(time = time, abundance = abundances,
+                                     sim = i)
+}
+data_abundances <- do.call(rbind.data.frame, list_abundances)
+
+# Plot the simulated abundances over time using ggplot2
+ggplot(data_abundances, aes(x = time, y = abundance, colour = factor(sim))) +
+  geom_line() +
+  labs(x = "Time", y = "Species abundance",
+       title = paste(n_sim, "simulated abundances with linear decreasing",
+                     "trend over time")) +
+  scale_y_continuous(limits = c(0, NA)) +
+  theme_minimal() +
+  theme(legend.position = "")
+```
+
+### Spatial clustering
+
+-  Spatial clustering can be different for each *species*.
+-  Values related to clustering ([Moran’s I](https://en.wikipedia.org/wiki/Moran%27s_I)? value between -1 (regular) to 0 (random) to 1 (clustered))
+-  Implementation
+   - Species: Get number of coordinate pairs based on clustering value equal to the abundance of the species.
+   - Clustering value = Moran’s I? `runif(n, min = -1, max = 1)` for uniform distribution between -1 and 1 or the Beta distribution to get a skewed distribution between -1 and 1. Let $X \sim Beta(\alpha, \beta)$, then then the transformation $Y = 2X − 1$ will result in a distribution with values between -1 and 1.
+
+```{r clustering-beta}
+# Generate data
+n <- 100
+x_values <- seq(0, 1, length.out = n)
+
+# Parameters Beta distribution
+alpha <- c(1, 2, 2, 2, 7, 8)
+beta <- c(1, 1, 2, 7, 2, 8)
+
+# Calculate Beta densities in dataframe
+clustering_df <- tibble(
+  alpha = alpha,
+  beta = beta) %>%
+  expand(nesting(alpha, beta), x_values) %>%
+  rowwise() %>%
+  mutate(
+    density = dbeta(x_values, shape1 = alpha, shape2 = beta),
+    y_values = 2 * x_values - 1,
+    distribution = paste0("Beta(", alpha, ",", beta, ")")
+  )
+
+# Plot the densities
+ggplot(clustering_df, aes(x = y_values, y = density)) +
+  geom_line() +
+  labs(x = "Moran's I", y = "Density",
+       title = "Densities of different Beta distributions") +
+  facet_wrap(~distribution) +
+  theme(legend.position = "") +
+  theme_minimal()
+```
+
+## Detection process
+
+To simulate the detection of individuals in a certain spatial region, we need information on the detection probability	of each species and sampling effort. The probability of detecting an individual can be the product of detection probability and sampling probability. Once observed, there is also always a certain spatial uncertainty related to each observation (`coordinateUncertaintyInMeters`).
+
+### Detection probability
+-  Detection probability can be different for each *species*.
+-  Values are a probability between 0 (never detected) to 1 (always detected)
+-  Implementation
+   - Species: Probability between 0 and 1 for each species. `runif(n, min = 0, max = 1)` for uniform distribution between 0 and 1 or the Beta distribution to get a skewed distribution between -1 and  (`runif(n, min = 0, max = 1)` is the same as `rbeta(n, shape1 = 1, shape2 = 1)`)
+   - See `detection.probability` argument in the `sampleOccurrences()` function of the **virtualspecies** package
+
+```{r detection-beta}
+# Generate data
+n <- 100
+x_values <- seq(0, 1, length.out = n)
+
+# Parameters Beta distribution
+alpha <- c(1, 2, 2, 2, 7, 8)
+beta <- c(1, 1, 2, 7, 2, 8)
+
+# Calculate densities in dataframe
+detection_df <- tibble(
+  alpha = alpha,
+  beta = beta) %>%
+  expand(nesting(alpha, beta), x_values) %>%
+  rowwise() %>%
+  mutate(
+    density = dbeta(x_values, shape1 = alpha, shape2 = beta),
+    distribution = paste0("Beta(", alpha, ",", beta, ")")
+  )
+
+# Plot the densities
+ggplot(detection_df, aes(x = x_values, y = density)) +
+  geom_line() +
+  labs(x = "Detection probability", y = "Density",
+       title = "Densities of different Beta distributions") +
+  facet_wrap(~distribution) +
+  theme(legend.position = "") +
+  theme_minimal()
+```
+
+### Sampling effort
+
+-  Sampling effort can be different in *space* and *time*.
+-  Values are weights related to number of visits (?)
+-  Implementation
+   - Space: raster of bias weights to be applied to the sampling of occurrences. Higher weights mean a higher probability of sampling
+   - Time: raster can be the same for each time period or differ
+   - See `weights` argument in the `sampleOccurrences()` function of **virtualspecies** package
+
+### Spatial uncertainty
+
+-  Spatial uncertainty can be different for each *observation* or the same
+-  Values are coordinate uncertainty in meters around observation
+-  Implementation
+   - Observation: distribution (uniform, (truncated) normal, gamma …) with varying upper bound, can be the same or different for all observations or something in between (extra parameter?)
+
+```{r spat-uncertainty}
+# Parameters for the truncated normal distribution
+mean_val <- 20
+sd_val <- 10
+
+# Parameters for the Gamma distribution
+shape <- 2
+rate <- 0.1
+
+# Set the lower limit for the truncated distributions
+lower_limit <- 0
+
+# Generate x values for the plot
+x_values <- seq(lower_limit, mean_val + 5 * sd_val, length.out = 1000)
+
+# Calculate the probability density function (PDF) for the positively truncated
+# Normal distribution
+density_values_normal <- dnorm(x_values, mean = mean_val, sd = sd_val)
+
+# Calculate the probability density function (PDF) for the positively truncated
+# Gamma distribution
+density_values_gamma <- dgamma(x_values, shape = shape, rate = rate)
+
+# Create a data frame
+coord_uncertainty_df <- tibble(
+  x = rep(x_values, 2),
+  density = c(density_values_normal, density_values_gamma),
+  distribution = rep(c(paste0("Normal", "(", mean_val, ",", sd_val, ")"),
+                       paste0("Gamma", "(", shape, ",", rate, ")")),
+                     each = length(x_values))
+  )
+
+# Plot the positive distributions
+ggplot(coord_uncertainty_df, aes(x = x, y = density)) +
+  geom_line() +
+  labs(x = "Coordinate uncertainty in meters", y = "Density",
+       title = "Positive distributions to sample spatial uncertainty") +
+  facet_wrap(~distribution) +
+  theme_minimal()
+```
+
+## Grid designation process
+
+Observation to grid designation is not the focus of this project.
+Therefore R code to assign observations to grid cells is already available as a single function.
+Here we briefly demonstrate how this function works.
+
+```{r observation-data}
+# Set seed for reproducibility
+set.seed(123)
+
+# Number of observations and spatial limits
+n_points <- 4
+xlim <- c(3841000, 3842000)
+ylim <- c(3110000, 3112000)
+
+# Create random points
+observations_sf <- 
+  tibble(
+    lat = runif(n_points, ylim[1], ylim[2]),
+    long = runif(n_points, xlim[1], xlim[2])
+  ) %>%
+  st_as_sf(coords = c("long", "lat"), crs = 3035) %>%
+  mutate(coordinateUncertaintyInMeters = rgamma(n_points, shape = 5, rate = 0.1))
+
+# Add buffer uncertainty in meters around points
+observations_buffered <- observations_sf %>%
+  st_buffer(observations_sf$coordinateUncertaintyInMeters)
+
+# Create grid
+grid_df <- st_make_grid(
+  observations_buffered,
+  square = TRUE,
+  cellsize = c(200, 200)
+  ) %>%
+  st_sf() %>%
+  mutate(id = row_number())
+```
+
+Consider `r n_points` of observations each with a specific coordinate uncertainty.
+We can superimpose a grid to create a data cube.
+
+```{r visualise-observations}
+ggplot() +
+  geom_sf(data = grid_df, linewidth = 1) +
+  geom_sf(data = observations_sf, colour = "firebrick") +
+  geom_sf(data = observations_buffered, fill = alpha("firebrick", 0.5)) +
+  theme_void()
+```
+
+The function `grid_designation()` designates observations to cells of a given grid to create an aggregated data cube based on a random point within the uncertainty circle around each observation.
+The argument `observations` is an sf object with POINT geometry and a `coordinateUncertaintyInMeters` column.
+The first argument `grid` is an sf object with POLYGON geometry (typically a grid) to which observations should be designated.
+Further we have the optional argument `id_col` which is the column name of the column with unique ids for each grid cell. If `"row_names"` (the default), a column `id` is created were the row numbers represent the unique ids.
+With the argument `seed` which you can specify for random number generation to make results reproducible. If `NA` (the default), no seed is used.
+The function returns an sf object with the number of observations, geometry and minimal coordinate uncertainty per grid cell.
+
+Here, we visualise the output where we see the number of observation per grid cell for this imaginary species in comparison to the original observations (with their uncertainty).
+We also show the sampled point within the uncertainty circle (these can be obtained with the argument `aggregate = FALSE`).
+If the argument `randomisation = "uniform"` (= default), each point in the uncertainty circle has an equal probability to be selected. In the other option `randomisation = "normal"`, a point is sampled from a bivariate Normal distribution, but this option is outside the scope of this project.
+
+```{r visualise-cubes}
+# Source functions to for observation to grid designation
+# install.packages("remotes")
+# remotes::install_github("b-cubed-eu/simcuber")
+library(simcuber)
+
+# Create occurrence cube
+occurrence_cube_df <- grid_designation(
+  observations = observations_sf,
+  grid = grid_df,
+  seed = 123)
+
+# Also get sampled points to visualise
+sampled_points <- grid_designation(
+  observations = observations_sf,
+  grid = grid_df,
+  seed = 123,
+  aggregate = FALSE)
+
+# Visualise output
+ggplot() +
+  geom_sf(data = occurrence_cube_df, linewidth = 1) +
+  geom_sf_text(data = occurrence_cube_df, aes(label = n)) +
+  geom_sf(data = sampled_points, colour = "blue") +
+  geom_sf(data = observations_sf, colour = "firebrick") +
+  geom_sf(data = observations_buffered, fill = alpha("firebrick", 0.5)) +
+  theme_void()
+```
+
+# Project tasks
+
+Apart from programming these main functions, there are some other tasks that can be carried out depending of the number of participants and the time at hands.
+
+## Create a package
+
+We will create these functions in an R package [**simcuber**](https://github.com/b-cubed-eu/simcuber).
+We can still change this name :)
+
+Checkout the [B-Cubed documentation website](https://docs.b-cubed.eu/dev-guide/r-packages/) for good practices.
+
+## Create unit tests
+
+We can create unit tests for all functions.
+Unit tests verify that the function behaves as expected under different scenarios. This helps to catch bugs early in the development process and ensures that changes made to the function in the future will not inadvertently break its behaviour.
+They are also useful in a collaboration setting since they provide insight into how a function is intended to work and can help new team members understand the codebase more quickly.
+Furthermore, you can quickly verify if any changes to a function result in unexpected outputs.
+
+Checkout the [B-Cubed documentation website](https://docs.b-cubed.eu/dev-guide/r/#testing) for good practices.
+
+## Create documentation and vignettes
+
+Once some of the functions are ready, documentation and vignettes with examples demonstrating their use can be made.
+This will make the code visible to the public and invite people to use our functions.
+
+[**simcuber**](https://b-cubed-eu.github.io/simcuber/) already has the framework for a pkgdown website.
+
+## Visualisation
+
+At the end of the hackathon it would be nice to have some visual support (and not only lines of code) for the project.
+Here are some ideas
+
+-  After the occurrence process, abundances can be plotted over time and/or species distributions can be plotted in space over time.
+-  After the detection process, abundances can be plotted over time and/or species distributions can be plotted in space over time.
+-  Visualise differences between occurrence process and detection process?
+-  After the grid designation process occurrences/abundances can be plotted in space over time.
+-  ...?
+
+## Allow incorporation of virtual species 
+
+Ensure incorporation of virtual species in the workflow via the **virtualspecies** package.
+See `02_framework_architecture.Rmd` were this could be done.
+
+## Explore species movement argument
+
+The current idea of the occurrence process is to sample individuals from a spatial field that has a certain amount of spatial autocorrelation.
+The individuals of species can change over time (temporal autocorrelation).
+Additional functionality to program spatiotemporal autocorrelation can be explored.
+Instead of sampling individuals anew at each time point, we could model movement of individuals such that individuals move each time point to a nearby spot depending on their step size and the probability of the spatial field.
+
+# Useful references/packages {#references}
+
+-  [virtualspecies](https://borea.mnhn.fr/sites/default/files/pdfs/ECOGRAPHY_E01388.pdf)
+   - An R package to generate virtual species distributions and sample occurrences
+   -  `sampleOccurrences()` might be a useful function to look into
+-  [SimSurvey](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7213729/)
+   - An R package for comparing the design and analysis of surveys by simulating spatially-correlated populations
+-  [gstat](https://r-spatial.github.io/gstat/)
+   - An R package for spatial and spatio-temporal geostatistical modelling, prediction and simulation
+   - See also [this blog post](http://santiago.begueria.es/2010/10/generating-spatially-correlated-random-fields-with-r/)
+- [spatstat](https://github.com/spatstat/spatstat)
+  - A family of R packages for analysing spatial point pattern data (and other kinds of spatial data)
+  - Extensive capabilities for exploratory analysis, statistical modelling, simulation and statistical inference
+  - See [the website](www.spatstat.org) or read [the book](https://book.spatstat.org/)
+- [sdmTMB](https://pbs-assess.github.io/sdmTMB/)
+  - An R package that fits spatial and spatiotemporal GLMMs (Generalized Linear Mixed Effects Models) using Template Model Builder (TMB), R-INLA, and Gaussian Markov random fields
+  - [Here](https://pbs-assess.github.io/sdmTMB/#simulating-data) is an example to simulate data from scratch

@@ -11,3 +11,10 @@ vendor/
 
 # Mac OS
 .DS_Store
+
+# R
+.Rproj.user
+.Rhistory
+
+# Ignore big files
+*.html
