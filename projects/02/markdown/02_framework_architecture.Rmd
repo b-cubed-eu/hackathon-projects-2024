@@ -340,12 +340,11 @@ In case of `aggregate = TRUE`, an sf object with POLYGON geometry containing the
 
 Unit tests are made using the **testthat** package [@wickham2011testthat].
 They can be found under `tests > testthat > test-"function_name".R`.
-The tests can be performed for each function in each script or you can run the markdown file (`markdown > 03_unit_testing.Rmd`) to run all tests.
 
 # Documentation and vignettes
 
 For all functions we add [roxygen2](https://roxygen2.r-lib.org/) documentation to the file.
 We can create vignettes with examples demonstrating the use of the functions with figures etc. with Rmarkdown (or Quarto ...).
-They can be placed in the `markdown` folder or in a new folder.
+They can be placed on the [pkgdown website](https://b-cubed-eu.github.io/simcuber/).
 
 # References
