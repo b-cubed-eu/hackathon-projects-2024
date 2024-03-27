@@ -28,3 +28,9 @@ opts_knit$set(root.dir = here())
 library(tidyverse)
 ```
 
+
+```{r}
+x <- googlesheets4::read_sheet('https://docs.google.com/spreadsheets/d/1bKGLzC8iyF5voXsrWJF0iyo6cH_y4ZCuyUZcXGWhrWM/edit?usp=sharing')
+x
+
+```
