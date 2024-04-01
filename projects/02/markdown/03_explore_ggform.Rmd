@@ -77,10 +77,11 @@ responses_df %>%
   ungroup() %>%
   mutate(country = reorder(country, order_var, decreasing = TRUE)) %>%
   ggplot(aes(x = country)) +
-    geom_bar() +
+    geom_bar(aes(fill = country)) +
     geom_label(stat = "count", aes(label = after_stat(count))) +
     labs(title = "From which country did you come to get to this event?",
-         x = "country")
+         x = "country") +
+    theme(legend.position = "")
 ```
 
 What are our favourite programming languages?
@@ -92,9 +93,25 @@ responses_df %>%
   ungroup() %>%
   mutate(fav_lang = reorder(fav_lang, order_var, decreasing = TRUE)) %>%
   ggplot(aes(x = fav_lang)) +
-    geom_bar() +
+    geom_bar(aes(fill = fav_lang)) +
     geom_label(stat = "count", aes(label = after_stat(count))) +
     labs(title = "What is your favourite programming language?",
-         x = "language")
+         x = "language") +
+    theme(legend.position = "")
 ```
 
+What are our favourite Belgian beers?
+
+```{r}
+responses_df %>%
+  group_by(fav_beer) %>%
+  mutate(order_var = n()) %>%
+  ungroup() %>%
+  mutate(fav_beer = reorder(fav_beer, order_var, decreasing = TRUE)) %>%
+  ggplot(aes(x = fav_beer)) +
+    geom_bar(aes(fill = fav_beer)) +
+    geom_label(stat = "count", aes(label = after_stat(count))) +
+    labs(title = "What is your favourite Belgian beer?",
+         x = "beer") +
+    theme(legend.position = "")
+```
