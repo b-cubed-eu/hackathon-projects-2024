@@ -130,6 +130,69 @@ responses_df %>%
   group_by(main_interest) %>%
   mutate(order_var = n()) %>%
   ungroup() %>%
+  mutate(main_interest = reorder(main_interest, order_var,
+                                 decreasing = TRUE)) %>%
+  ggplot(aes(x = main_interest)) +
+    geom_bar(aes(fill = main_interest)) +
+    geom_label(stat = "count", aes(label = after_stat(count))) +
+    labs(title = "What your main interests for this hackathon?",
+         x = "interests") +
+    theme_minimal() +
+    theme(legend.position = "")
+```
+
+For the tasks, we have:
+
+```{r}
+responses_df %>% 
+  mutate(lowlevel_tasks = strsplit(as.character(lowlevel_tasks), ",")) %>% 
+  unnest(lowlevel_tasks) %>%
+  mutate(lowlevel_tasks_f = gsub("\\s", "\n", lowlevel_tasks),
+         lowlevel_tasks_f = factor(lowlevel_tasks_f,
+                                   levels = c(
+                                     "spatial\nautocorrelation",
+                                     "temporal\nautocorrelation",
+                                     "detection\nprobability",
+                                     "sampling\nbias",
+                                     "coordinate\nuncertainty"
+                                   ))) %>%
+  ggplot(aes(x = lowlevel_tasks_f)) +
+    geom_bar(aes(fill = lowlevel_tasks_f)) +
+    geom_label(stat = "count", aes(label = after_stat(count))) +
+    scale_x_discrete(drop = FALSE) +
+    labs(title = "In which lowlevel tasks would you be interested?",
+         x = "lowlevel tasks") +
+    theme_minimal() +
+    theme(legend.position = "")
+```
+
+```{r}
+responses_df %>% 
+  mutate(highlevel_tasks = strsplit(as.character(highlevel_tasks), ",")) %>% 
+  unnest(highlevel_tasks) %>%
+  mutate(highlevel_tasks_f = gsub("\\s", "\n", highlevel_tasks),
+         highlevel_tasks_f = factor(highlevel_tasks_f,
+                                    levels = c(
+                                      "simulate\noccurrence",
+                                      "sample\nobservations"
+                                    ))) %>%
+  ggplot(aes(x = highlevel_tasks_f)) +
+    geom_bar(aes(fill = highlevel_tasks_f)) +
+    geom_label(stat = "count", aes(label = after_stat(count))) +
+    scale_x_discrete(drop = FALSE) +
+    labs(title = "In which highlevel tasks would you be interested?",
+         x = "highlevel tasks") +
+    theme_minimal() +
+    theme(legend.position = "")
+```
+
+```{r}
+responses_df %>% 
+  mutate(main_interest = strsplit(as.character(main_interest), ",")) %>% 
+  unnest(main_interest) %>%
+  group_by(main_interest) %>%
+  mutate(order_var = n()) %>%
+  ungroup() %>%
   mutate(main_interest = reorder(main_interest, order_var, decreasing = TRUE)) %>%
   ggplot(aes(x = main_interest)) +
     geom_bar(aes(fill = main_interest)) +
@@ -140,4 +203,63 @@ responses_df %>%
     theme(legend.position = "")
 ```
 
+```{r}
+responses_df %>% 
+  mutate(technical_tasks = strsplit(as.character(technical_tasks), ",")) %>% 
+  unnest(technical_tasks) %>%
+  mutate(technical_tasks_f = gsub("\\s", "\n", technical_tasks),
+         technical_tasks_f = factor(technical_tasks_f,
+                                    levels = c(
+                                      "unit\ntests",
+                                      "documentation",
+                                      "pkgdown\nwebsite",
+                                      "GitHub\nrepository"
+                                    ))) %>%
+  ggplot(aes(x = technical_tasks_f)) +
+    geom_bar(aes(fill = technical_tasks_f)) +
+    geom_label(stat = "count", aes(label = after_stat(count))) +
+    scale_x_discrete(drop = FALSE) +
+    labs(title = "In which technical tasks would you be interested?",
+         x = "technical tasks") +
+    theme_minimal() +
+    theme(legend.position = "")
+```
 
+```{r}
+responses_df %>% 
+  mutate(creative_tasks = strsplit(as.character(creative_tasks), ",")) %>% 
+  unnest(creative_tasks) %>%
+  mutate(creative_tasks_f = gsub("\\s", "\n", creative_tasks),
+         creative_tasks_f = factor(creative_tasks_f,
+                                   levels = c(
+                                     "spatiotemporal\nautocorrelation",
+                                     "virtualspecies",
+                                     "vignettes"
+                                   ))) %>%
+  ggplot(aes(x = creative_tasks_f)) +
+    geom_bar(aes(fill = creative_tasks_f)) +
+    geom_label(stat = "count", aes(label = after_stat(count))) +
+    scale_x_discrete(drop = FALSE) +
+    labs(title = "In which creative tasks would you be interested?",
+         x = "creative tasks") +
+    theme_minimal() +
+    theme(legend.position = "")
+```
+
+```{r}
+responses_df %>% 
+  mutate(other_tasks = strsplit(as.character(other_tasks), ",")) %>% 
+  unnest(other_tasks) %>%
+  group_by(other_tasks) %>%
+  mutate(order_var = n()) %>%
+  ungroup() %>%
+  mutate(other_tasks = reorder(other_tasks, order_var,
+                                 decreasing = TRUE)) %>%
+  ggplot(aes(x = other_tasks)) +
+    geom_bar(aes(fill = other_tasks)) +
+    geom_label(stat = "count", aes(label = after_stat(count))) +
+    labs(title = "Any other tasks you would like to do?",
+         x = "other tasks") +
+    theme_minimal() +
+    theme(legend.position = "")
+```
