@@ -28,9 +28,11 @@ opts_knit$set(root.dir = here())
 library(tidyverse)
 ```
 
+# Read in data and data preparation
 
 ```{r}
-gg_form_raw <- googlesheets4::read_sheet(
+# Read in responses Google Sheet
+responses_raw <- googlesheets4::read_sheet(
   paste("https://docs.google.com/spreadsheets/d",
         "1bKGLzC8iyF5voXsrWJF0iyo6cH_y4ZCuyUZcXGWhrWM/edit?usp=sharing",
         sep = "/")
