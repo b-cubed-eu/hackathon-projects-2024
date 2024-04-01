@@ -37,4 +37,24 @@ responses_raw <- googlesheets4::read_sheet(
         "1bKGLzC8iyF5voXsrWJF0iyo6cH_y4ZCuyUZcXGWhrWM/edit?usp=sharing",
         sep = "/")
   )
+responses_df <- responses_raw %>%
+  mutate(full_name = paste(`First name`, `Last name`))
 ```
+
+# Data exploration
+
+In total, we have `r nrow(responses_df)` responses.
+
+```{r}
+responses_df %>%
+  group_by(Affiliation) %>%
+  mutate(order_var = n()) %>%
+  ungroup() %>%
+  mutate(Affiliation = reorder(Affiliation, order_var, decreasing = TRUE)) %>%
+  ggplot(aes(x = Affiliation)) +
+    geom_bar() +
+    geom_label(stat = "count", aes(label = after_stat(count)))
+```
+
+
+
