@@ -45,6 +45,7 @@ responses_df <- responses_raw %>%
   mutate(full_name = paste(`First name`, `Last name`)) %>%
   group_by(full_name) %>%
   top_n(1, Timestamp) %>%
+  ungroup() %>%
   rename_with(tolower) %>%
   select(timestamp,
     first_name = `first name`,
