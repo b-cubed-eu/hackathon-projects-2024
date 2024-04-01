@@ -37,24 +37,64 @@ responses_raw <- googlesheets4::read_sheet(
         "1bKGLzC8iyF5voXsrWJF0iyo6cH_y4ZCuyUZcXGWhrWM/edit?usp=sharing",
         sep = "/")
   )
+
+# Only keep last response
 responses_df <- responses_raw %>%
-  mutate(full_name = paste(`First name`, `Last name`))
+  mutate(full_name = paste(`First name`, `Last name`)) %>%
+  group_by(full_name) %>%
+  top_n(1, Timestamp) %>%
+  rename_with(tolower) %>%
+  select(timestamp,
+         first_name = `first name`,
+         last_name = `last name`,
+         full_name,
+         affiliation,
+         country = `from which country did you come to get to this event?`,
+         email = `email address`,
+         github_user = `github user name`,
+         fav_lang = `what is your favourite programming language?`,
+         fav_beer = `what is your favourite belgian beer?`,
+         main_interest = `write 1-5 keywords for your main interests for this hackathon (separate them by commas)? for example: algorithms, r programming, spatial analyses, sampling bias`,
+         lowlevel_tasks = `in which lowlevel tasks would you be interested?`,
+         highlevel_tasks = `in which highlevel tasks would you be interested?`,
+         technical_tasks = `in which technical tasks would you be interested?`,
+         creative_tasks = `in which creative tasks would you be interested?`,
+         other_tasks = `any other tasks you would like to do not in the previous lists (separate them by commas)?`,
+         package_name = `do you want to change the r package name? if yes, what name do you propose?`
+         )
 ```
 
 # Data exploration
 
 In total, we have `r nrow(responses_df)` responses.
 
+Where does everyone come from?
+
 ```{r}
 responses_df %>%
-  group_by(Affiliation) %>%
+  group_by(country) %>%
   mutate(order_var = n()) %>%
   ungroup() %>%
-  mutate(Affiliation = reorder(Affiliation, order_var, decreasing = TRUE)) %>%
-  ggplot(aes(x = Affiliation)) +
+  mutate(country = reorder(country, order_var, decreasing = TRUE)) %>%
+  ggplot(aes(x = country)) +
     geom_bar() +
-    geom_label(stat = "count", aes(label = after_stat(count)))
+    geom_label(stat = "count", aes(label = after_stat(count))) +
+    labs(title = "From which country did you come to get to this event?",
+         x = "country")
 ```
 
+What are our favourite programming languages?
 
+```{r}
+responses_df %>%
+  group_by(fav_lang) %>%
+  mutate(order_var = n()) %>%
+  ungroup() %>%
+  mutate(fav_lang = reorder(fav_lang, order_var, decreasing = TRUE)) %>%
+  ggplot(aes(x = fav_lang)) +
+    geom_bar() +
+    geom_label(stat = "count", aes(label = after_stat(count))) +
+    labs(title = "What is your favourite programming language?",
+         x = "language")
+```
 
