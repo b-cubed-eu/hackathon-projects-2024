@@ -135,7 +135,7 @@ responses_df %>%
   ggplot(aes(x = main_interest)) +
     geom_bar(aes(fill = main_interest)) +
     geom_label(stat = "count", aes(label = after_stat(count))) +
-    labs(title = "What your main interests for this hackathon?",
+    labs(title = "What are your main interests for this hackathon?",
          x = "interests") +
     theme_minimal() +
     theme(legend.position = "")
@@ -182,23 +182,6 @@ responses_df %>%
     scale_x_discrete(drop = FALSE) +
     labs(title = "In which highlevel tasks would you be interested?",
          x = "highlevel tasks") +
-    theme_minimal() +
-    theme(legend.position = "")
-```
-
-```{r}
-responses_df %>% 
-  mutate(main_interest = strsplit(as.character(main_interest), ",")) %>% 
-  unnest(main_interest) %>%
-  group_by(main_interest) %>%
-  mutate(order_var = n()) %>%
-  ungroup() %>%
-  mutate(main_interest = reorder(main_interest, order_var, decreasing = TRUE)) %>%
-  ggplot(aes(x = main_interest)) +
-    geom_bar(aes(fill = main_interest)) +
-    geom_label(stat = "count", aes(label = after_stat(count))) +
-    labs(title = "What your main interests for this hackathon?",
-         x = "interests") +
     theme_minimal() +
     theme(legend.position = "")
 ```
@@ -260,6 +243,26 @@ responses_df %>%
     geom_label(stat = "count", aes(label = after_stat(count))) +
     labs(title = "Any other tasks you would like to do?",
          x = "other tasks") +
+    theme_minimal() +
+    theme(legend.position = "")
+```
+
+What do we propose for the package name?
+
+```{r}
+responses_df %>%
+  mutate(package_name_new = ifelse(package_name == "No, simcuber is fine",
+                                   "simcuber", package_name)) %>%
+  group_by(package_name_new) %>%
+  mutate(order_var = n()) %>%
+  ungroup() %>%
+  mutate(package_name_new = reorder(package_name_new, order_var,
+                                    decreasing = TRUE)) %>%
+  ggplot(aes(x = package_name_new)) +
+    geom_bar(aes(fill = package_name_new)) +
+    geom_label(stat = "count", aes(label = after_stat(count))) +
+    labs(title = "What R package name do you propose?",
+         x = "package name") +
     theme_minimal() +
     theme(legend.position = "")
 ```
