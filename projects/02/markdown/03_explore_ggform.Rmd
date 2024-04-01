@@ -81,6 +81,7 @@ responses_df %>%
     geom_label(stat = "count", aes(label = after_stat(count))) +
     labs(title = "From which country did you come to get to this event?",
          x = "country") +
+    theme_minimal() +
     theme(legend.position = "")
 ```
 
@@ -97,6 +98,7 @@ responses_df %>%
     geom_label(stat = "count", aes(label = after_stat(count))) +
     labs(title = "What is your favourite programming language?",
          x = "language") +
+    theme_minimal() +
     theme(legend.position = "")
 ```
 
@@ -113,5 +115,29 @@ responses_df %>%
     geom_label(stat = "count", aes(label = after_stat(count))) +
     labs(title = "What is your favourite Belgian beer?",
          x = "beer") +
+    theme_minimal() +
     theme(legend.position = "")
 ```
+
+# Task interests
+
+Lets have a look where our interests lie.
+
+```{r}
+responses_df %>% 
+  mutate(main_interest = strsplit(as.character(main_interest), ",")) %>% 
+  unnest(main_interest) %>%
+  group_by(main_interest) %>%
+  mutate(order_var = n()) %>%
+  ungroup() %>%
+  mutate(main_interest = reorder(main_interest, order_var, decreasing = TRUE)) %>%
+  ggplot(aes(x = main_interest)) +
+    geom_bar(aes(fill = main_interest)) +
+    geom_label(stat = "count", aes(label = after_stat(count))) +
+    labs(title = "What your main interests for this hackathon?",
+         x = "interests") +
+    theme_minimal() +
+    theme(legend.position = "")
+```
+
+
