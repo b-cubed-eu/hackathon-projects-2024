@@ -21,7 +21,8 @@ library(here)
 opts_chunk$set(
   echo = TRUE,
   message = FALSE,
-  warning = FALSE)
+  warning = FALSE
+)
 opts_knit$set(root.dir = here())
 
 # Packages
@@ -34,9 +35,10 @@ library(tidyverse)
 # Read in responses Google Sheet
 responses_raw <- googlesheets4::read_sheet(
   paste("https://docs.google.com/spreadsheets/d",
-        "1bKGLzC8iyF5voXsrWJF0iyo6cH_y4ZCuyUZcXGWhrWM/edit?usp=sharing",
-        sep = "/")
+    "1bKGLzC8iyF5voXsrWJF0iyo6cH_y4ZCuyUZcXGWhrWM/edit?usp=sharing",
+    sep = "/"
   )
+)
 
 # Only keep last response
 responses_df <- responses_raw %>%
@@ -45,23 +47,23 @@ responses_df <- responses_raw %>%
   top_n(1, Timestamp) %>%
   rename_with(tolower) %>%
   select(timestamp,
-         first_name = `first name`,
-         last_name = `last name`,
-         full_name,
-         affiliation,
-         country = `from which country did you come to get to this event?`,
-         email = `email address`,
-         github_user = `github user name`,
-         fav_lang = `what is your favourite programming language?`,
-         fav_beer = `what is your favourite belgian beer?`,
-         main_interest = `write 1-5 keywords for your main interests for this hackathon (separate them by commas)? for example: algorithms, r programming, spatial analyses, sampling bias`,
-         lowlevel_tasks = `in which lowlevel tasks would you be interested?`,
-         highlevel_tasks = `in which highlevel tasks would you be interested?`,
-         technical_tasks = `in which technical tasks would you be interested?`,
-         creative_tasks = `in which creative tasks would you be interested?`,
-         other_tasks = `any other tasks you would like to do not in the previous lists (separate them by commas)?`,
-         package_name = `do you want to change the r package name? if yes, what name do you propose?`
-         )
+    first_name = `first name`,
+    last_name = `last name`,
+    full_name,
+    affiliation,
+    country = `from which country did you come to get to this event?`,
+    email = `email address`,
+    github_user = `github user name`,
+    fav_lang = `what is your favourite programming language?`,
+    fav_beer = `what is your favourite belgian beer?`,
+    main_interest = `write 1-5 keywords for your main interests for this hackathon (separate them by commas)? for example: algorithms, r programming, spatial analyses, sampling bias`,
+    lowlevel_tasks = `in which lowlevel tasks would you be interested?`,
+    highlevel_tasks = `in which highlevel tasks would you be interested?`,
+    technical_tasks = `in which technical tasks would you be interested?`,
+    creative_tasks = `in which creative tasks would you be interested?`,
+    other_tasks = `any other tasks you would like to do not in the previous lists (separate them by commas)?`,
+    package_name = `do you want to change the r package name? if yes, what name do you propose?`
+  )
 ```
 
 # Data exploration
@@ -77,12 +79,14 @@ responses_df %>%
   ungroup() %>%
   mutate(country = reorder(country, order_var, decreasing = TRUE)) %>%
   ggplot(aes(x = country)) +
-    geom_bar(aes(fill = country)) +
-    geom_label(stat = "count", aes(label = after_stat(count))) +
-    labs(title = "From which country did you come to get to this event?",
-         x = "country") +
-    theme_minimal() +
-    theme(legend.position = "")
+  geom_bar(aes(fill = country)) +
+  geom_label(stat = "count", aes(label = after_stat(count))) +
+  labs(
+    title = "From which country did you come to get to this event?",
+    x = "country"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "")
 ```
 
 What are our favourite programming languages?
@@ -94,12 +98,14 @@ responses_df %>%
   ungroup() %>%
   mutate(fav_lang = reorder(fav_lang, order_var, decreasing = TRUE)) %>%
   ggplot(aes(x = fav_lang)) +
-    geom_bar(aes(fill = fav_lang)) +
-    geom_label(stat = "count", aes(label = after_stat(count))) +
-    labs(title = "What is your favourite programming language?",
-         x = "language") +
-    theme_minimal() +
-    theme(legend.position = "")
+  geom_bar(aes(fill = fav_lang)) +
+  geom_label(stat = "count", aes(label = after_stat(count))) +
+  labs(
+    title = "What is your favourite programming language?",
+    x = "language"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "")
 ```
 
 What are our favourite Belgian beers?
@@ -111,12 +117,14 @@ responses_df %>%
   ungroup() %>%
   mutate(fav_beer = reorder(fav_beer, order_var, decreasing = TRUE)) %>%
   ggplot(aes(x = fav_beer)) +
-    geom_bar(aes(fill = fav_beer)) +
-    geom_label(stat = "count", aes(label = after_stat(count))) +
-    labs(title = "What is your favourite Belgian beer?",
-         x = "beer") +
-    theme_minimal() +
-    theme(legend.position = "")
+  geom_bar(aes(fill = fav_beer)) +
+  geom_label(stat = "count", aes(label = after_stat(count))) +
+  labs(
+    title = "What is your favourite Belgian beer?",
+    x = "beer"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "")
 ```
 
 # Task interests
@@ -124,127 +132,153 @@ responses_df %>%
 Lets have a look where our interests lie.
 
 ```{r}
-responses_df %>% 
-  mutate(main_interest = strsplit(as.character(main_interest), ",")) %>% 
+responses_df %>%
+  mutate(main_interest = strsplit(as.character(main_interest), ",")) %>%
   unnest(main_interest) %>%
   group_by(main_interest) %>%
   mutate(order_var = n()) %>%
   ungroup() %>%
   mutate(main_interest = reorder(main_interest, order_var,
-                                 decreasing = TRUE)) %>%
+    decreasing = TRUE
+  )) %>%
   ggplot(aes(x = main_interest)) +
-    geom_bar(aes(fill = main_interest)) +
-    geom_label(stat = "count", aes(label = after_stat(count))) +
-    labs(title = "What are your main interests for this hackathon?",
-         x = "interests") +
-    theme_minimal() +
-    theme(legend.position = "")
+  geom_bar(aes(fill = main_interest)) +
+  geom_label(stat = "count", aes(label = after_stat(count))) +
+  labs(
+    title = "What are your main interests for this hackathon?",
+    x = "interests"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "")
 ```
 
 For the tasks, we have:
 
 ```{r}
-responses_df %>% 
-  mutate(lowlevel_tasks = strsplit(as.character(lowlevel_tasks), ",")) %>% 
+responses_df %>%
+  mutate(lowlevel_tasks = strsplit(as.character(lowlevel_tasks), ",")) %>%
   unnest(lowlevel_tasks) %>%
-  mutate(lowlevel_tasks_f = gsub("\\s", "\n", lowlevel_tasks),
-         lowlevel_tasks_f = factor(lowlevel_tasks_f,
-                                   levels = c(
-                                     "spatial\nautocorrelation",
-                                     "temporal\nautocorrelation",
-                                     "detection\nprobability",
-                                     "sampling\nbias",
-                                     "coordinate\nuncertainty"
-                                   ))) %>%
+  mutate(
+    lowlevel_tasks_f = gsub("\\s", "\n", lowlevel_tasks),
+    lowlevel_tasks_f = factor(lowlevel_tasks_f,
+      levels = c(
+        "spatial\nautocorrelation",
+        "temporal\nautocorrelation",
+        "detection\nprobability",
+        "sampling\nbias",
+        "coordinate\nuncertainty"
+      )
+    )
+  ) %>%
   ggplot(aes(x = lowlevel_tasks_f)) +
-    geom_bar(aes(fill = lowlevel_tasks_f)) +
-    geom_label(stat = "count", aes(label = after_stat(count))) +
-    scale_x_discrete(drop = FALSE) +
-    labs(title = "In which lowlevel tasks would you be interested?",
-         x = "lowlevel tasks") +
-    theme_minimal() +
-    theme(legend.position = "")
+  geom_bar(aes(fill = lowlevel_tasks_f)) +
+  geom_label(stat = "count", aes(label = after_stat(count))) +
+  scale_x_discrete(drop = FALSE) +
+  labs(
+    title = "In which lowlevel tasks would you be interested?",
+    x = "lowlevel tasks"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "")
 ```
 
 ```{r}
-responses_df %>% 
-  mutate(highlevel_tasks = strsplit(as.character(highlevel_tasks), ",")) %>% 
+responses_df %>%
+  mutate(highlevel_tasks = strsplit(as.character(highlevel_tasks), ",")) %>%
   unnest(highlevel_tasks) %>%
-  mutate(highlevel_tasks_f = gsub("\\s", "\n", highlevel_tasks),
-         highlevel_tasks_f = factor(highlevel_tasks_f,
-                                    levels = c(
-                                      "simulate\noccurrence",
-                                      "sample\nobservations"
-                                    ))) %>%
+  mutate(
+    highlevel_tasks_f = gsub("\\s", "\n", highlevel_tasks),
+    highlevel_tasks_f = factor(highlevel_tasks_f,
+      levels = c(
+        "simulate\noccurrence",
+        "sample\nobservations"
+      )
+    )
+  ) %>%
   ggplot(aes(x = highlevel_tasks_f)) +
-    geom_bar(aes(fill = highlevel_tasks_f)) +
-    geom_label(stat = "count", aes(label = after_stat(count))) +
-    scale_x_discrete(drop = FALSE) +
-    labs(title = "In which highlevel tasks would you be interested?",
-         x = "highlevel tasks") +
-    theme_minimal() +
-    theme(legend.position = "")
+  geom_bar(aes(fill = highlevel_tasks_f)) +
+  geom_label(stat = "count", aes(label = after_stat(count))) +
+  scale_x_discrete(drop = FALSE) +
+  labs(
+    title = "In which highlevel tasks would you be interested?",
+    x = "highlevel tasks"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "")
 ```
 
 ```{r}
-responses_df %>% 
-  mutate(technical_tasks = strsplit(as.character(technical_tasks), ",")) %>% 
+responses_df %>%
+  mutate(technical_tasks = strsplit(as.character(technical_tasks), ",")) %>%
   unnest(technical_tasks) %>%
-  mutate(technical_tasks_f = gsub("\\s", "\n", technical_tasks),
-         technical_tasks_f = factor(technical_tasks_f,
-                                    levels = c(
-                                      "unit\ntests",
-                                      "documentation",
-                                      "pkgdown\nwebsite",
-                                      "GitHub\nrepository"
-                                    ))) %>%
+  mutate(
+    technical_tasks_f = gsub("\\s", "\n", technical_tasks),
+    technical_tasks_f = factor(technical_tasks_f,
+      levels = c(
+        "unit\ntests",
+        "documentation",
+        "pkgdown\nwebsite",
+        "GitHub\nrepository"
+      )
+    )
+  ) %>%
   ggplot(aes(x = technical_tasks_f)) +
-    geom_bar(aes(fill = technical_tasks_f)) +
-    geom_label(stat = "count", aes(label = after_stat(count))) +
-    scale_x_discrete(drop = FALSE) +
-    labs(title = "In which technical tasks would you be interested?",
-         x = "technical tasks") +
-    theme_minimal() +
-    theme(legend.position = "")
+  geom_bar(aes(fill = technical_tasks_f)) +
+  geom_label(stat = "count", aes(label = after_stat(count))) +
+  scale_x_discrete(drop = FALSE) +
+  labs(
+    title = "In which technical tasks would you be interested?",
+    x = "technical tasks"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "")
 ```
 
 ```{r}
-responses_df %>% 
-  mutate(creative_tasks = strsplit(as.character(creative_tasks), ",")) %>% 
+responses_df %>%
+  mutate(creative_tasks = strsplit(as.character(creative_tasks), ",")) %>%
   unnest(creative_tasks) %>%
-  mutate(creative_tasks_f = gsub("\\s", "\n", creative_tasks),
-         creative_tasks_f = factor(creative_tasks_f,
-                                   levels = c(
-                                     "spatiotemporal\nautocorrelation",
-                                     "virtualspecies",
-                                     "vignettes"
-                                   ))) %>%
+  mutate(
+    creative_tasks_f = gsub("\\s", "\n", creative_tasks),
+    creative_tasks_f = factor(creative_tasks_f,
+      levels = c(
+        "spatiotemporal\nautocorrelation",
+        "virtualspecies",
+        "vignettes"
+      )
+    )
+  ) %>%
   ggplot(aes(x = creative_tasks_f)) +
-    geom_bar(aes(fill = creative_tasks_f)) +
-    geom_label(stat = "count", aes(label = after_stat(count))) +
-    scale_x_discrete(drop = FALSE) +
-    labs(title = "In which creative tasks would you be interested?",
-         x = "creative tasks") +
-    theme_minimal() +
-    theme(legend.position = "")
+  geom_bar(aes(fill = creative_tasks_f)) +
+  geom_label(stat = "count", aes(label = after_stat(count))) +
+  scale_x_discrete(drop = FALSE) +
+  labs(
+    title = "In which creative tasks would you be interested?",
+    x = "creative tasks"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "")
 ```
 
 ```{r}
-responses_df %>% 
-  mutate(other_tasks = strsplit(as.character(other_tasks), ",")) %>% 
+responses_df %>%
+  mutate(other_tasks = strsplit(as.character(other_tasks), ",")) %>%
   unnest(other_tasks) %>%
   group_by(other_tasks) %>%
   mutate(order_var = n()) %>%
   ungroup() %>%
   mutate(other_tasks = reorder(other_tasks, order_var,
-                                 decreasing = TRUE)) %>%
+    decreasing = TRUE
+  )) %>%
   ggplot(aes(x = other_tasks)) +
-    geom_bar(aes(fill = other_tasks)) +
-    geom_label(stat = "count", aes(label = after_stat(count))) +
-    labs(title = "Any other tasks you would like to do?",
-         x = "other tasks") +
-    theme_minimal() +
-    theme(legend.position = "")
+  geom_bar(aes(fill = other_tasks)) +
+  geom_label(stat = "count", aes(label = after_stat(count))) +
+  labs(
+    title = "Any other tasks you would like to do?",
+    x = "other tasks"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "")
 ```
 
 What do we propose for the package name?
@@ -252,17 +286,21 @@ What do we propose for the package name?
 ```{r}
 responses_df %>%
   mutate(package_name_new = ifelse(package_name == "No, simcuber is fine",
-                                   "simcuber", package_name)) %>%
+    "simcuber", package_name
+  )) %>%
   group_by(package_name_new) %>%
   mutate(order_var = n()) %>%
   ungroup() %>%
   mutate(package_name_new = reorder(package_name_new, order_var,
-                                    decreasing = TRUE)) %>%
+    decreasing = TRUE
+  )) %>%
   ggplot(aes(x = package_name_new)) +
-    geom_bar(aes(fill = package_name_new)) +
-    geom_label(stat = "count", aes(label = after_stat(count))) +
-    labs(title = "What R package name do you propose?",
-         x = "package name") +
-    theme_minimal() +
-    theme(legend.position = "")
+  geom_bar(aes(fill = package_name_new)) +
+  geom_label(stat = "count", aes(label = after_stat(count))) +
+  labs(
+    title = "What R package name do you propose?",
+    x = "package name"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "")
 ```
