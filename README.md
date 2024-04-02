@@ -15,7 +15,7 @@ See [tempates](templates/)
 
 Number | Title | Lead
 --- | --- | ---
-[Project 1](projects/01) | Data cubes for landscape approach in biodiversity conservation across farmers | Hanna Fiegenbaum
+[Project 1](projects/01) | ~~Data cubes for landscape approach in biodiversity conservation across farmers~~ _Project cancelled_ | Hanna Fiegenbaum
 [Project 2](projects/02) | Unveiling Ecological Dynamics Through Simulation and Visualization of Biodiversity Data Cubes | Ward Langeraert
 [Project 3](projects/03) | Intelligent Nature Positive Impact Data for the Financial Services | Noelia Jimenez Martinez
 [Project 4](projects/04) | Irokube: Deep-SDM and Critical Habitats Mapping Empowered by Data Cubes | Maxime Ryckewaert
