@@ -2,7 +2,9 @@
 
 ## Abstract
 
-The challenge: For the finance and insurance sectors to benefit from opportunities provided by nature and mitigate nature-related risks, reliable biodiversity monitoring data is a must.  Current state-of-the-art: To serve the need for simple, decision-ready metrics for biodiversity footprinting and the measurement of Nature Positive Impact, NatureMetrics has developed a core functionality to be delivered through NatureMetrics digital dashboard. To encompass the many dimensions of nature and service the Financial Services market, this framework combines biodiversity footprint, biodiversity impact and biodiversity trends metrics. Thus, this framework concomitantly measures biodiversity pressures and responses. Here, we propose the incorporation of standardized biodiversity data from B-Cube within iNPI, e.g., during design of open-source connectivity algorithms at high spatial resolution to link with the framework’s restoration tracker element, to maximize the efficiency and return of investment of biodiversity management interventions, and demonstrate the high-resolution required for the Financial Services market. 
+Numerous vineyards are emerging across northern Europe, including regions such as Britain, driven by forecasts of climate change facilitating favorable wine production conditions in the future. Nevertheless, financial institutions face challenges in assessing the risk associated with agricultural loans that support the establishment of these vineyards.
+The objective of this hackathon is to pioneer a machine learning methodology enabling financial institutions to effectively gauge the investment risk associated with various potential vineyard ventures. This can be achieved by suing  B-cubes data as in input and comparing the relative suitability for grape growing versus their suitability for pest species for vineyards in a selected region
+![image](https://github.com/b-cubed-eu/hackathon-projects-2024/assets/136703883/e4b92eb3-1244-48bd-979a-414cb4fa1da0)
 
 ## More information
 
