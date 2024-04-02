@@ -6,10 +6,11 @@ This repository is for participants of the April 2024 [B-Cubed Hackathon](https:
 
 See [guidelines](guidelines.md)
 
+<!--
 ## Templates
 
 See [tempates](templates/)
-
+-->
 ## Projects
 
 Number | Title
