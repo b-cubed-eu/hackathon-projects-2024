@@ -75,6 +75,7 @@ Where does everyone come from?
 
 ```{r}
 responses_df %>%
+  mutate(country = str_trim(country)) %>%
   group_by(country) %>%
   mutate(order_var = n()) %>%
   ungroup() %>%
@@ -113,6 +114,7 @@ What are our favourite Belgian beers?
 
 ```{r}
 responses_df %>%
+  mutate(fav_beer = str_trim(fav_beer)) %>%
   group_by(fav_beer) %>%
   mutate(order_var = n()) %>%
   ungroup() %>%
@@ -136,6 +138,7 @@ Lets have a look where our interests lie.
 responses_df %>%
   mutate(main_interest = strsplit(as.character(main_interest), ",")) %>%
   unnest(main_interest) %>%
+  mutate(main_interest = str_trim(main_interest)) %>%
   group_by(main_interest) %>%
   mutate(order_var = n()) %>%
   ungroup() %>%
@@ -159,6 +162,7 @@ For the tasks, we have:
 responses_df %>%
   mutate(lowlevel_tasks = strsplit(as.character(lowlevel_tasks), ",")) %>%
   unnest(lowlevel_tasks) %>%
+  mutate(lowlevel_tasks = str_trim(lowlevel_tasks)) %>%
   mutate(
     lowlevel_tasks_f = gsub("\\s", "\n", lowlevel_tasks),
     lowlevel_tasks_f = factor(lowlevel_tasks_f,
@@ -187,6 +191,7 @@ responses_df %>%
 responses_df %>%
   mutate(highlevel_tasks = strsplit(as.character(highlevel_tasks), ",")) %>%
   unnest(highlevel_tasks) %>%
+  mutate(highlevel_tasks = str_trim(highlevel_tasks)) %>%
   mutate(
     highlevel_tasks_f = gsub("\\s", "\n", highlevel_tasks),
     highlevel_tasks_f = factor(highlevel_tasks_f,
@@ -212,6 +217,7 @@ responses_df %>%
 responses_df %>%
   mutate(technical_tasks = strsplit(as.character(technical_tasks), ",")) %>%
   unnest(technical_tasks) %>%
+  mutate(technical_tasks = str_trim(technical_tasks)) %>%
   mutate(
     technical_tasks_f = gsub("\\s", "\n", technical_tasks),
     technical_tasks_f = factor(technical_tasks_f,
@@ -239,6 +245,7 @@ responses_df %>%
 responses_df %>%
   mutate(creative_tasks = strsplit(as.character(creative_tasks), ",")) %>%
   unnest(creative_tasks) %>%
+  mutate(creative_tasks = str_trim(creative_tasks)) %>%
   mutate(
     creative_tasks_f = gsub("\\s", "\n", creative_tasks),
     creative_tasks_f = factor(creative_tasks_f,
@@ -289,6 +296,7 @@ responses_df %>%
   mutate(package_name_new = ifelse(package_name == "No, simcuber is fine",
     "simcuber", package_name
   )) %>%
+  mutate(package_name_new = str_trim(package_name_new)) %>%
   group_by(package_name_new) %>%
   mutate(order_var = n()) %>%
   ungroup() %>%
