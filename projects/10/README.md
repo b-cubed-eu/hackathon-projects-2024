@@ -9,6 +9,6 @@ Traditional biodiversity monitoring programmes usually hold well-curated data of
 
 ## Lead(s)
 
-Heliana Teixeira, Lina Estupinan-Suarez
+Heliana Teixeira, Lina Estupinan-Suarez, Cristina Preda, Maarten Trekels, Marina Golivets, Jasmijn Hillaert
 
 ## Project Outcomes
