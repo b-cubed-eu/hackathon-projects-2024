@@ -1,0 +1,8 @@
+{
+  "sendNotification": true,
+  "notificationAddresses": [
+    "maarten.trekels@plantentuinmeise.be"
+  ],
+  "format": "SQL_TSV_ZIP",
+  "sql": "SELECT  PRINTF('%04d-%02d', \"year\", \"month\") AS yearMonth,  GBIF_EEARGCode(1000, decimalLatitude, decimalLongitude, COALESCE(coordinateUncertaintyInMeters, 1000)) AS eeaCellCode,  basisOfRecord,  datasetKey,  countryCode,  COUNT(*) AS occurrences,  MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,  MIN(GBIF_TemporalUncertainty(eventDate)) AS minTemporalUncertainty FROM  occurrence WHERE occurrenceStatus = 'PRESENT'  AND continent = 'EUROPE'  AND speciesKey = 3048831  AND hasCoordinate = TRUE  AND NOT ARRAY_CONTAINS(issue, 'ZERO_COORDINATE')  AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_OUT_OF_RANGE')  AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_INVALID')  AND NOT ARRAY_CONTAINS(issue, 'COUNTRY_COORDINATE_MISMATCH') AND \"month\" IS NOT NULL GROUP BY yearMonth, eeaCellCode, basisOfRecord, datasetKey, countryCode ORDER BY  yearMonth DESC,  eeaCellCode ASC,  countryCode ASC"
+}
