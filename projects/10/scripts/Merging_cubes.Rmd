@@ -7,11 +7,28 @@ output: html_document
 
 ```{r setup, include=FALSE}
 #Reading input
-
 GbifDataCube <- read.csv('~/GitHub/hackathon-projects-2024/projects/10/output/GBIF_data_cube.csv', header=TRUE)
 
-FloppyDiscCube <- read.csv('~/GitHub/hackathon-projects-2024/projects/10/output/Floppy_disk_cube.csv', header=TRUE)
+FloppyDiskCube <- read.csv('~/GitHub/hackathon-projects-2024/projects/10/output/Floppy_disk_cube.csv', header=TRUE)
+```
+
+```{r}
+#Merge cubes
+library(dplyr)
+
+
+FloppyDiskCube$Floppy <- 1
+FloppyDiskCube <- FloppyDiskCube%>%
+  select(eeacellcode, Floppy)
+
+Final_cube <- merge(GbifDataCube, FloppyDiskCube, by= "eeacellcode", all.x=TRUE, all.y=TRUE)
+
 ```
 
 
+```{r}
+#export merged cube
+
+write.csv(Final_cube, '~/GitHub/hackathon-projects-2024/projects/10/output/merged_cube.csv')
+```
 
