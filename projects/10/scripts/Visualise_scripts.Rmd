@@ -1,0 +1,9 @@
+```{r}
+library(sf)
+#input_files
+
+eeaGrid <- read_sf("~/GitHub/hackathon-projects-2024/projects/10/input/eea_grid/Grid_ETRS89-LAEA_10K.shp")
+
+
+```
+
