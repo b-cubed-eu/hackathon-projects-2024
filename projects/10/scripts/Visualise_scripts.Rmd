@@ -1,9 +1,45 @@
 ```{r}
 library(sf)
+library(leaflet)
+library(dplyr)
+
 #input_files
-
 eeaGrid <- read_sf("~/GitHub/hackathon-projects-2024/projects/10/input/eea_grid/Grid_ETRS89-LAEA_10K.shp")
+kadereit<- read_sf("~/GitHub/hackathon-projects-2024/projects/10/input/kadereit_4326/kadereit_data.shp")
 
+ro <-read_sf("~/GitHub/hackathon-projects-2024/projects/10/input/ro_4326/ro_4326.shp")
 
+eeaGrid <- st_transform(eeaGrid, crs= 4326)
+
+GbifDataCube <- read.csv('~/GitHub/hackathon-projects-2024/projects/10/output/GBIF_data_cube.csv', header=TRUE)
+
+FloppyDiskCube <- read.csv('~/GitHub/hackathon-projects-2024/projects/10/output/Floppy_disk_cube.csv', header=TRUE)
 ```
+```{r}
+EeaGridGbif <- eeaGrid %>% filter(CellCode %in% GbifDataCube$eeacellcode)
+EeaGridFloppy <- eeaGrid %>% filter(CellCode%in% FloppyDiskCube$eeacellcode)
+```
+
+```{r}
+#perform
+
+EeaGrid_kadereit <- eeaGrid[st_intersects(eeaGrid, kadereit) %>% lengths >0,]
+EeaGrid_ro <- eeaGrid[st_intersects(eeaGrid, ro) %>% lengths >0,]
+```
+
+```{r}
+#creating map in leaflet
+
+map <- leaflet() %>%
+  addTiles()%>%
+  addPolygons(data=EeaGridGbif, color= "red")%>%
+  addCircleMarkers(data=kadereit, color="blue")
+
+map <- leaflet() %>%
+  addTiles()%>%
+  addPolygons(data=EeaGridGbif, color= "grey", opacity=1)%>%
+  addPolygons(data=EeaGrid_kadereit, color="blue", opacity=1)%>%
+  addPolygons(data=EeaGrid_ro, color="red", opacity=1)
+```
+
 
